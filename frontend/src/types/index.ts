@@ -64,7 +64,6 @@ export interface Product {
   compare_at_price?: number | null;       // MRP / crossed-out price
   availability_status?: 'in_stock' | 'out_of_stock';
   stock_quantity: number;
-  featured_image?: string;
   status?: 'draft' | 'published';
   is_featured: boolean;
   category?: Category;
@@ -96,7 +95,7 @@ export interface OrderItem {
   quantity: number;
   unit_price: number;
   total_price: number;
-  product?: Pick<Product, 'id' | 'name' | 'featured_image'>;
+  product?: Pick<Product, 'id' | 'name' | 'images'>;
 }
 
 export interface Order {

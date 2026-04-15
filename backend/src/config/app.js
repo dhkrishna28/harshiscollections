@@ -9,6 +9,7 @@ const userRoutes = require('../routes/user');
 const { errorHandler, notFound } = require('../middleware/errorHandler');
 
 const app = express();
+const uploadsDir = path.join(__dirname, '../../uploads');
 
 app.set('trust proxy', 1);
 
@@ -43,8 +44,8 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // ─── Static Files (uploaded content) ─────────────────────────────────────────
-// Serve uploads from the frontend public folder (so dev server and frontend can access them)
-app.use('/uploads', express.static(path.join(__dirname, '../../../frontend/public/uploads')));
+// Runtime uploads live under the backend so they are decoupled from frontend build assets.
+app.use('/uploads', express.static(uploadsDir));
 
 // ─── Routes ──────────────────────────────────────────────────────────────────
 app.use('/api/admin', adminRoutes);

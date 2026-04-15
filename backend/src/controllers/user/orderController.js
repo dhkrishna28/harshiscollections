@@ -1,7 +1,7 @@
-const { Order, OrderItem, Cart, CartItem, Product, Transaction } = require('../../models');
+const { Order, OrderItem, Cart, CartItem, Product, ProductImage, Transaction } = require('../../models');
 const { sequelize } = require('../../models');
+const { Op } = require('sequelize');
 const { v4: uuidv4 } = require('uuid');
-
 const placeOrder = async (req, res, next) => {
   const t = await sequelize.transaction();
   try {
@@ -15,6 +15,7 @@ const placeOrder = async (req, res, next) => {
     const cart = await Cart.findOne({
       where: { user_id: req.user.id },
       include: [{ model: CartItem, as: 'items', include: [{ model: Product, as: 'product' }] }],
+      transaction: t,
     });
 
     if (!cart || !cart.items.length) {
@@ -22,14 +23,25 @@ const placeOrder = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Cart is empty.' });
     }
 
+    const productIds = cart.items.map((item) => item.product_id);
+    const lockedProducts = await Product.findAll({
+      where: { id: { [Op.in]: productIds } },
+      transaction: t,
+      lock: t.LOCK.UPDATE,
+    });
+    const productsById = new Map(lockedProducts.map((product) => [product.id, product]));
+
     // Validate stock and compute totals
     let subtotal = 0;
     const orderItems = [];
     for (const item of cart.items) {
-      const { product } = item;
-      if (!product.is_active || product.stock_quantity < item.quantity) {
+      const product = productsById.get(item.product_id);
+      if (!product || !product.is_active || product.stock_quantity < item.quantity) {
         await t.rollback();
-        return res.status(400).json({ success: false, message: `"${product.name}" is out of stock.` });
+        return res.status(400).json({
+          success: false,
+          message: `"${item.product?.name || 'Product'}" is out of stock.`,
+        });
       }
       const unit_price = parseFloat(String(product.price)); // price is always the selling price
       const total_price = unit_price * item.quantity;
@@ -46,7 +58,7 @@ const placeOrder = async (req, res, next) => {
 
     const shipping_charge = 0; // implement shipping logic as needed
     const total = subtotal + shipping_charge;
-    const order_number = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    const order_number = `ORD-${Date.now()}-${uuidv4().slice(0, 8).toUpperCase()}`;
 
     const order = await Order.create({
       user_id: req.user.id,
@@ -64,7 +76,11 @@ const placeOrder = async (req, res, next) => {
 
     for (const item of orderItems) {
       await OrderItem.create({ ...item, order_id: order.id }, { transaction: t });
-      await Product.decrement('stock_quantity', { by: item.quantity, where: { id: item.product_id }, transaction: t });
+      const product = productsById.get(item.product_id);
+      await product.update(
+        { stock_quantity: product.stock_quantity - item.quantity },
+        { transaction: t }
+      );
     }
 
     // Create transaction record
@@ -110,7 +126,16 @@ const getOrderDetail = async (req, res, next) => {
     const order = await Order.findOne({
       where: { id: req.params.id, user_id: req.user.id },
       include: [
-        { model: OrderItem, as: 'items', include: [{ model: Product, as: 'product', attributes: ['id', 'name', 'featured_image'] }] },
+        {
+          model: OrderItem,
+          as: 'items',
+          include: [{
+            model: Product,
+            as: 'product',
+            attributes: ['id', 'name'],
+            include: [{ model: ProductImage, as: 'images', attributes: ['id', 'image_path', 'sort_order'] }],
+          }],
+        },
         { model: Transaction, as: 'transaction' },
       ],
     });

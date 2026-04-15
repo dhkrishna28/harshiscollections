@@ -23,7 +23,10 @@ export default function SignInForm() {
     setError("");
     setLoading(true);
     try {
-      const { token, admin } = await authService.login(email, password);
+      const { success, token, admin } = await authService.login(email, password);
+      if (!success) {
+        throw new Error("Login failed.");
+      }
       login(token, admin);
       navigate("/");
     } catch (err: unknown) {

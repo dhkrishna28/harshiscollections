@@ -17,8 +17,8 @@ logs/
 # OS files
 .DS_Store
 
-# Uploads (optional - recommended to ignore)
-frontend/public/uploads/
+# Uploads (runtime content)
+backend/uploads/
 
 # PM2
 .pm2/

@@ -1,6 +1,16 @@
 const { Category } = require('../../models');
 const slugify = require('slugify');
 
+const CATEGORY_FIELDS = ['name', 'description', 'parent_id', 'sort_order', 'is_active'];
+
+function pickCategoryFields(source) {
+  const picked = {};
+  for (const field of CATEGORY_FIELDS) {
+    if (source[field] !== undefined) picked[field] = source[field];
+  }
+  return picked;
+}
+
 const list = async (req, res, next) => {
   try {
     const categories = await Category.findAll({
@@ -28,7 +38,7 @@ const getById = async (req, res, next) => {
 
 const create = async (req, res, next) => {
   try {
-    const data = req.body;
+    const data = pickCategoryFields(req.body);
     data.slug = slugify(data.name, { lower: true, strict: true });
     if (req.file) data.image = `/uploads/cms/${req.file.filename}`;
     const cat = await Category.create(data);
@@ -42,7 +52,7 @@ const update = async (req, res, next) => {
   try {
     const cat = await Category.findByPk(req.params.id);
     if (!cat) return res.status(404).json({ success: false, message: 'Category not found.' });
-    const data = req.body;
+    const data = pickCategoryFields(req.body);
     if (data.name) data.slug = slugify(data.name, { lower: true, strict: true });
     if (req.file) data.image = `/uploads/cms/${req.file.filename}`;
     await cat.update(data);

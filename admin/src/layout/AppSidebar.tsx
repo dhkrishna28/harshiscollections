@@ -6,9 +6,6 @@ import {
   CartIcon,
   ChevronDownIcon,
   GridIcon,
-  HorizontaLDots,
-  PageIcon,
-  UserCircleIcon,
 } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
 
@@ -36,7 +33,7 @@ const navItems: NavItem[] = [
   //   subItems: [{ name: "Basic Tables", path: "/basic-tables", pro: false }],
   // },
   {
-  name: "Harshis Collections",
+    name: "Harshis Collections",
     icon: <CartIcon />,
     subItems: [
       { name: "Products", path: "/products", pro: false },
@@ -44,31 +41,9 @@ const navItems: NavItem[] = [
       { name: "Transactions", path: "/transactions", pro: false },
     ],
   },
-  {
-    name: "Pages",
-    icon: <PageIcon />,
-    subItems: [
-      { name: "Blank Page", path: "/blank", pro: false },
-      { name: "404 Error", path: "/error-404", pro: false },
-    ],
-  },
 ];
 
-const othersItems: NavItem[] = [
-  {
-    icon: <UserCircleIcon />,
-    name: "User Profile",
-    path: "/profile",
-  },
-  // {
-  //   icon: <PlugInIcon />,
-  //   name: "Authentication",
-  //   subItems: [
-  //     { name: "Sign In", path: "/signin", pro: false },
-  //     { name: "Sign Up", path: "/signup", pro: false },
-  //   ],
-  // },
-];
+const othersItems: NavItem[] = [];
 
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();

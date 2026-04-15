@@ -34,9 +34,6 @@ const API_ORIGIN = (() => {
     return base.replace('/api/admin', '').replace('/api', '');
   }
 })();
-// Prefer frontend origin for public assets (uploads); allow overriding via VITE_FRONTEND_BASE_URL
-const FRONTEND_ORIGIN = (import.meta.env.VITE_FRONTEND_BASE_URL as string) || '/';
-
 // Resolve image path returned by API to a full URL. Handles absolute and relative paths.
 const resolveImageUrl = (imgPath?: string | null) => {
   if (!imgPath) return undefined;
@@ -50,11 +47,10 @@ const resolveImageUrl = (imgPath?: string | null) => {
   const cleanPath = imgPath.startsWith("/") ? imgPath : `/${imgPath}`;
 
   // remove trailing slash from origin
-  const cleanFrontendOrigin = FRONTEND_ORIGIN.replace(/\/$/, "");
   const cleanApiOrigin = API_ORIGIN.replace(/\/$/, "");
 
   if (cleanPath.startsWith("/uploads")) {
-    return `${cleanFrontendOrigin}${cleanPath}`;
+    return `${cleanApiOrigin}${cleanPath}`;
   }
 
   return `${cleanApiOrigin}${cleanPath}`;
@@ -519,7 +515,7 @@ export default function EditProduct() {
         </div>
 
         {/* ── Existing Images ──────────────────────────────────── */}
-  {(((product.images && product.images.length > 0) as boolean) || ((product as any).featured_image)) && (
+  {((product.images && product.images.length > 0) as boolean) && (
           <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
             <div className="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
               <h2 className="text-lg font-medium text-gray-800 dark:text-white">Existing Images</h2>
@@ -602,7 +598,6 @@ export default function EditProduct() {
               <input id="edit-product-image" className="hidden" type="file" multiple accept="image/*"
                 onChange={(e) => {
                   const files = Array.from(e.target.files ?? []);
-                  try { console.debug('[EditProduct] selected files:', files.length, files.map((f) => f.name)); } catch (err) { /* ignore */ }
                   setNewImageFiles((prev) => {
                     const combined = [...prev, ...files];
                     const seen = new Set();

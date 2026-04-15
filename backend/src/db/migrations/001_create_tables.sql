@@ -89,8 +89,6 @@ CREATE TABLE IF NOT EXISTS products (
   availability_status ENUM('in_stock','out_of_stock') DEFAULT 'in_stock',
   stock_quantity INT DEFAULT 0,
   weight DECIMAL(8,2),
-  -- ── Media ─────────────────────────────────────────────────────
-  featured_image VARCHAR(255),
   -- ── Publishing ────────────────────────────────────────────────
   status ENUM('draft','published') DEFAULT 'published',   -- Save as Draft / Publish
   is_active TINYINT(1) DEFAULT 1,

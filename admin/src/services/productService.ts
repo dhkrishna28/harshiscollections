@@ -104,24 +104,8 @@ export const productService = {
         formData.append(key, String(val));
       }
     });
-    // Include featured image and any gallery images in the same multipart request
     if (images && images.length > 0) {
-      // first file as featured_image
-      formData.append('featured_image', images[0]);
-      // remaining files as images[]
-      images.slice(1).forEach((file) => formData.append('images', file));
-    }
-    // DEBUG: log files and FormData keys in browser console to help troubleshooting
-    try {
-      if (typeof window !== 'undefined' && (window as any).console) {
-        console.debug('[productService.create] files count:', images ? images.length : 0);
-        // enumerate formData keys
-        for (const pair of (formData as any).entries()) {
-          console.debug('[productService.create] formData entry:', pair[0], pair[1]);
-        }
-      }
-    } catch (e) {
-      /* ignore debug errors */
+      images.forEach((file) => formData.append('images', file));
     }
     const res = await api.post<BackendSingle<AdminProduct>>('/products', formData);
     return res.data.data;
@@ -141,21 +125,8 @@ export const productService = {
         formData.append(key, String(val));
       }
     });
-    // Send featured + gallery images in the same update request when possible
     if (images && images.length > 0) {
-      formData.append('featured_image', images[0]);
-      images.slice(1).forEach((file) => formData.append('images', file));
-    }
-    // DEBUG: log files and FormData keys in browser console to help troubleshooting
-    try {
-      if (typeof window !== 'undefined' && (window as any).console) {
-        console.debug('[productService.update] files count:', images ? images.length : 0);
-        for (const pair of (formData as any).entries()) {
-          console.debug('[productService.update] formData entry:', pair[0], pair[1]);
-        }
-      }
-    } catch (e) {
-      /* ignore debug errors */
+      images.forEach((file) => formData.append('images', file));
     }
     const res = await api.put<BackendSingle<AdminProduct>>(`/products/${id}`, formData);
     return res.data.data;

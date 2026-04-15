@@ -48,7 +48,6 @@ export interface TransactionListResponse {
 
 export type OrderStatus =
   | 'pending'
-  | 'confirmed'
   | 'processing'
   | 'shipped'
   | 'delivered'

@@ -12,9 +12,6 @@ const API_ORIGIN = (() => {
     return base.replace('/api/admin', '').replace('/api', '');
   }
 })();
-// Prefer frontend origin for public assets (uploads); allow overriding via VITE_FRONTEND_BASE_URL
-const FRONTEND_ORIGIN = (import.meta.env.VITE_FRONTEND_BASE_URL as string) || '/';
-
 type SortKey = "name" | "category" | "brand" | "price";
 type SortDir = "asc" | "desc";
 
@@ -181,11 +178,10 @@ export default function ProductList() {
     const cleanPath = imgPath.startsWith("/") ? imgPath : `/${imgPath}`;
 
     // remove trailing slash from origin
-    const cleanFrontendOrigin = FRONTEND_ORIGIN.replace(/\/$/, "");
     const cleanApiOrigin = API_ORIGIN.replace(/\/$/, "");
 
     if (cleanPath.startsWith("/uploads")) {
-      return `${cleanFrontendOrigin}${cleanPath}`;
+      return `${cleanApiOrigin}${cleanPath}`;
     }
 
     return `${cleanApiOrigin}${cleanPath}`;
@@ -397,8 +393,7 @@ export default function ProductList() {
                 </tr>
               ) : (
                 sorted.map((product) => {
-                  // Prefer featured_image (set when product was created/updated). Fall back to images[0].image_path
-                  const primaryImg = (product as any).featured_image ?? product.images?.[0]?.image_path;
+                  const primaryImg = product.images?.[0]?.image_path;
                   return (
                   <tr key={product.id} className="transition hover:bg-gray-50 dark:hover:bg-gray-900">
                     <td className="lg:w-14 px-5 py-4 whitespace-nowrap">
