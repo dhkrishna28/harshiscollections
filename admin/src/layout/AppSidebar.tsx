@@ -6,6 +6,7 @@ import {
   CartIcon,
   ChevronDownIcon,
   GridIcon,
+  HorizontaLDots
 } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
 
