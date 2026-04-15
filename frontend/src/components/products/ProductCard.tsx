@@ -4,7 +4,7 @@ import type { Product } from '../../types';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 
-//const API_BASE = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace('/api', '') || '';
+const API_BASE = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace('/api', '') || '';
 
 export default function ProductCard({ product }: { product: Product }) {
   const { addItem } = useCart();
@@ -27,7 +27,9 @@ export default function ProductCard({ product }: { product: Product }) {
 
   const hasDiscount = !!product.compare_at_price && Number(product.compare_at_price) > Number(product.price);
 	
-  const imageUrl = product.images?.[0]?.image_path || '/placeholder.png';
+  const imageUrl = product.images?.[0]?.image_path
+    ? `${API_BASE}${product.images[0].image_path}`
+    : '/placeholder.png';
 
 
   return (

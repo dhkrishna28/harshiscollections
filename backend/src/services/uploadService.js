@@ -7,7 +7,8 @@ const fs = require('fs');
  */
 function deleteUploadedFile(publicPath) {
   try {
-    const filePath = path.join(__dirname, '../../', publicPath);
+    const normalizedPath = publicPath.replace(/^\/uploads\/?/, '');
+    const filePath = path.join(__dirname, '../../uploads', normalizedPath);
     if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
   } catch (err) {
     console.error('Failed to delete file:', err.message);

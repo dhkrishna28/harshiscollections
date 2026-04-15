@@ -17,7 +17,8 @@ const getCart = async (req, res, next) => {
             {
               model: Product,
               as: 'product',
-              attributes: ['id', 'name', 'slug', 'price', 'compare_at_price', 'availability_status', 'stock_quantity', 'featured_image'],
+              attributes: ['id', 'name', 'slug', 'price', 'compare_at_price', 'availability_status', 'stock_quantity'],
+              include: [{ model: ProductImage, as: 'images', attributes: ['id', 'image_path', 'sort_order'] }],
             },
           ],
         },

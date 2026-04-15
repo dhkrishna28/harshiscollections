@@ -1,5 +1,9 @@
-const { Order, OrderItem, User, Product, Transaction } = require('../../models');
+const { Order, OrderItem, User, Product, ProductImage, Transaction } = require('../../models');
 const { Op } = require('sequelize');
+const {
+  canTransitionOrderStatus,
+  canTransitionPaymentStatus,
+} = require('../../utils/orderStatus');
 
 const list = async (req, res, next) => {
   try {
@@ -29,7 +33,16 @@ const getById = async (req, res, next) => {
     const order = await Order.findByPk(req.params.id, {
       include: [
         { model: User, as: 'user', attributes: ['id', 'first_name', 'last_name', 'email', 'phone'] },
-        { model: OrderItem, as: 'items', include: [{ model: Product, as: 'product', attributes: ['id', 'name', 'featured_image'] }] },
+        {
+          model: OrderItem,
+          as: 'items',
+          include: [{
+            model: Product,
+            as: 'product',
+            attributes: ['id', 'name'],
+            include: [{ model: ProductImage, as: 'images', attributes: ['id', 'image_path', 'sort_order'] }],
+          }],
+        },
         { model: Transaction, as: 'transaction' },
       ],
     });
@@ -45,9 +58,28 @@ const updateStatus = async (req, res, next) => {
     const order = await Order.findByPk(req.params.id);
     if (!order) return res.status(404).json({ success: false, message: 'Order not found.' });
     const { status, payment_status } = req.body;
+    if (!status && !payment_status) {
+      return res.status(400).json({ success: false, message: 'No status changes provided.' });
+    }
     const updates = {};
-    if (status) updates.status = status;
-    if (payment_status) updates.payment_status = payment_status;
+    if (status) {
+      if (!canTransitionOrderStatus(order.status, status)) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid order status transition from ${order.status} to ${status}.`,
+        });
+      }
+      updates.status = status;
+    }
+    if (payment_status) {
+      if (!canTransitionPaymentStatus(order.payment_status, payment_status)) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid payment status transition from ${order.payment_status} to ${payment_status}.`,
+        });
+      }
+      updates.payment_status = payment_status;
+    }
     await order.update(updates);
     res.json({ success: true, data: order });
   } catch (err) {

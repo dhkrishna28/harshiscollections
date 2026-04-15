@@ -2,10 +2,10 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
+const uploadsRoot = path.join(__dirname, '../../uploads');
+
 function createStorage(subfolder) {
-  // Store uploads inside the frontend public folder so the dev server can serve them
-  // Note: this mixes runtime uploads with frontend assets (not recommended for prod).
-  const dest = path.join(__dirname, '../../../frontend/public/uploads', subfolder);
+  const dest = path.join(uploadsRoot, subfolder);
   if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
 
   return multer.diskStorage({

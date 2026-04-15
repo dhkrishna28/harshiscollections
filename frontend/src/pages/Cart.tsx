@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 
 export default function Cart() {
   const { cart, isLoading, removeItem, updateItem } = useCart();
+  const apiBase = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace('/api', '') || '';
 
   if (isLoading) return <div className="flex justify-center py-32"><div className="w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full animate-spin" /></div>;
 
@@ -28,10 +29,13 @@ export default function Cart() {
           <div className="flex flex-col gap-4">
             {items.map((item) => {
                 const price = item.product.price;
+                const imageUrl = item.product.images?.[0]?.image_path
+                  ? `${apiBase}${item.product.images[0].image_path}`
+                  : '/placeholder.png';
               return (
                 <div key={item.id} className="flex items-center gap-4 bg-white border rounded-xl p-4">
                   <img
-                    src={item.product.featured_image ? `${import.meta.env.VITE_API_BASE_URL?.replace('/api', '')}${item.product.featured_image}` : '/placeholder.png'}
+                    src={imageUrl}
                     alt={item.product.name}
                     className="w-20 h-20 object-cover rounded-lg"
                   />

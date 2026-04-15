@@ -31,7 +31,6 @@ const Product = sequelize.define('Product', {
   },
   stock_quantity: { type: DataTypes.INTEGER, defaultValue: 0 },
   weight: { type: DataTypes.DECIMAL(8, 2), allowNull: true },
-  featured_image: { type: DataTypes.STRING(255), allowNull: true },
   status: {
     type: DataTypes.ENUM('draft', 'published'),
     defaultValue: 'published',

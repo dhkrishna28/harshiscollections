@@ -530,7 +530,6 @@ export default function AddProduct() {
                 accept="image/*"
                 onChange={(e) => {
                   const files = Array.from(e.target.files ?? []);
-                  try { console.debug('[AddProduct] selected files:', files.length, files.map((f) => f.name)); } catch (err) { /* ignore */ }
                   setImageFiles((prev) => {
                     const combined = [...prev, ...files];
                     const seen = new Set();

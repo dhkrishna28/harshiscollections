@@ -6,8 +6,7 @@ module.exports = {
       script: "server.js",
       env: {
         NODE_ENV: "production",
-        PORT: 3001,
-        JWT_SECRET: "harshis_super_secret_key_2026"
+        PORT: 3001
       },
       watch: false,
       autorestart: true

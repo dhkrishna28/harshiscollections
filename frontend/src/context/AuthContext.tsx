@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, type ReactNode } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import type { AuthUser } from '../types';
 
 interface AuthContextValue {
@@ -12,6 +13,7 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const queryClient = useQueryClient();
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('user_token'));
   const [user, setUser] = useState<AuthUser | null>(() => {
     try {
@@ -27,6 +29,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('user', JSON.stringify(newUser));
     setToken(newToken);
     setUser(newUser);
+    queryClient.removeQueries({ queryKey: ['cart'] });
   };
 
   const logout = () => {
@@ -34,6 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('user');
     setToken(null);
     setUser(null);
+    queryClient.clear();
   };
 
   return (

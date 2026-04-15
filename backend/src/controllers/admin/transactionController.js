@@ -1,4 +1,4 @@
-const { Transaction, Order, OrderItem, User, Product } = require('../../models');
+const { Transaction, Order, OrderItem, User, Product, ProductImage } = require('../../models');
 const { Op } = require('sequelize');
 
 const list = async (req, res, next) => {
@@ -42,7 +42,12 @@ const getById = async (req, res, next) => {
             {
               model: OrderItem,
               as: 'items',
-              include: [{ model: Product, as: 'product', attributes: ['id', 'name', 'sku', 'featured_image'] }],
+              include: [{
+                model: Product,
+                as: 'product',
+                attributes: ['id', 'name', 'sku'],
+                include: [{ model: ProductImage, as: 'images', attributes: ['id', 'image_path', 'sort_order'] }],
+              }],
             },
           ],
         },

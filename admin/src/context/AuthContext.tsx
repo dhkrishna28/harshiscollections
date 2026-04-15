@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
 export interface AdminUser {
   id: number;
@@ -18,6 +19,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const queryClient = useQueryClient();
   const [token, setToken] = useState<string | null>(() =>
     localStorage.getItem('admin_token')
   );
@@ -35,14 +37,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('admin_user', JSON.stringify(newAdmin));
     setToken(newToken);
     setAdmin(newAdmin);
-  }, []);
+    queryClient.clear();
+  }, [queryClient]);
 
   const logout = useCallback(() => {
     localStorage.removeItem('admin_token');
     localStorage.removeItem('admin_user');
     setToken(null);
     setAdmin(null);
-  }, []);
+    queryClient.clear();
+  }, [queryClient]);
 
   return (
     <AuthContext.Provider

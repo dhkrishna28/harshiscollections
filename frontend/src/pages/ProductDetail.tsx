@@ -53,7 +53,7 @@ export default function ProductDetail() {
     return <div className="text-center py-32 text-gray-500">Product not found.</div>;
   }
 
-  const mainImage = activeImage ?? product.images?.[0]?.image_path ?? '/placeholder.png';
+  const mainImage = activeImage ?? (product.images?.[0]?.image_path ? `${API_ORIGIN}${product.images[0].image_path}` : '/placeholder.png');
 
   const isOutOfStock =
     product.stock_quantity === 0 || product.availability_status === 'out_of_stock';
@@ -105,19 +105,6 @@ export default function ProductDetail() {
 
             {(product.images?.length ?? 0) > 0 && (
               <div className="flex gap-3 mt-4 overflow-x-auto pb-1">
-                {product.featured_image && (
-                  <button
-                    type="button"
-                    onClick={() => setActiveImage(`${API_ORIGIN}${product.featured_image}`)}
-                    className={`shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition ${
-                      !activeImage || activeImage === `${API_ORIGIN}${product.featured_image}`
-                        ? 'border-primary-500'
-                        : 'border-transparent hover:border-gray-300'
-                    }`}
-                  >
-                    <img src={`${API_ORIGIN}${product.featured_image}`} alt={product.name} className="w-full h-full object-cover" />
-                  </button>
-                )}
                 {product.images!.map((img) => (
                   <button
                     key={img.id}
