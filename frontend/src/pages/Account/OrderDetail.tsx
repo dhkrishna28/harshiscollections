@@ -35,7 +35,12 @@ export default function OrderDetail() {
             <tbody>
               {order.items?.map((item) => (
                 <tr key={item.id} className="border-t">
-                  <td className="px-4 py-3 text-gray-800">{item.product_name}</td>
+                  <td className="px-4 py-3 text-gray-800">
+                    <div className="font-medium">{item.product_name}</div>
+                    {item.selected_size && (
+                      <div className="mt-1 text-xs text-gray-500">Size: {item.selected_size}</div>
+                    )}
+                  </td>
                   <td className="px-4 py-3 text-gray-600">{item.quantity}</td>
                   <td className="px-4 py-3 text-gray-900 font-medium text-right">₹{item.total_price}</td>
                 </tr>

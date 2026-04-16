@@ -21,6 +21,7 @@ const Product = sequelize.define('Product', {
   ideal_for: { type: DataTypes.TEXT('long'), allowNull: true },
   // ── Sizes JSON array e.g. ["S","M","L","34"] ──
   sizes: { type: DataTypes.JSON, allowNull: true },
+  size_inventory: { type: DataTypes.JSON, allowNull: true },
   // ── Identifiers / Pricing ──
   sku: { type: DataTypes.STRING(80), allowNull: true, unique: true },
   price: { type: DataTypes.DECIMAL(10, 2), allowNull: false },              // selling price

@@ -30,8 +30,12 @@ export interface AdminTransaction {
     user?: { id: number; first_name: string; last_name: string; email: string; phone?: string };
     items?: {
       id: number;
+      product_name?: string;
+      selected_size?: string | null;
       quantity: number;
       unit_price: number;
+      total_price?: number;
+      product?: { id: number; name: string; sku?: string };
     }[];
   };
 }
@@ -68,8 +72,11 @@ export interface AdminOrder {
 export interface OrderItem {
   id: number;
   product_id: number;
+  product_name?: string;
+  selected_size?: string | null;
   quantity: number;
   unit_price: number;
+  total_price?: number;
   product?: { id: number; name: string; sku?: string };
 }
 

@@ -1,6 +1,7 @@
 const { Op } = require('sequelize');
 const { Product, Category, ProductImage } = require('../../models');
 const slugify = require('slugify');
+const { getInventorySummary, normalizeSizeInventory } = require('../../utils/sizeInventory');
 
 const PRODUCT_FIELDS = [
   'name',
@@ -19,11 +20,10 @@ const PRODUCT_FIELDS = [
   'shipping_info',
   'ideal_for',
   'sizes',
+  'size_inventory',
   'price',
   'compare_at_price',
-  'availability_status',
   'status',
-  'stock_quantity',
   'is_featured',
   'meta_title',
   'meta_description',
@@ -93,10 +93,11 @@ const create = async (req, res, next) => {
       if (typeof data.sizes === 'string' && data.sizes.length > 0) {
         try { data.sizes = JSON.parse(data.sizes); } catch (e) { /* leave as-is */ }
       }
+      data.size_inventory = normalizeSizeInventory(data.size_inventory);
+      Object.assign(data, getInventorySummary(data.size_inventory));
       if (data.category_id) data.category_id = Number(data.category_id);
       if (data.price) data.price = Number(data.price);
       if (data.compare_at_price) data.compare_at_price = Number(data.compare_at_price);
-      if (data.stock_quantity) data.stock_quantity = Number(data.stock_quantity);
     } catch (_e) {}
 
     let product;
@@ -139,10 +140,13 @@ const update = async (req, res, next) => {
       if (typeof data.sizes === 'string' && data.sizes.length > 0) {
         try { data.sizes = JSON.parse(data.sizes); } catch (e) { /* ignore */ }
       }
+      if (data.size_inventory !== undefined) {
+        data.size_inventory = normalizeSizeInventory(data.size_inventory);
+        Object.assign(data, getInventorySummary(data.size_inventory));
+      }
       if (data.category_id) data.category_id = Number(data.category_id);
       if (data.price) data.price = Number(data.price);
       if (data.compare_at_price) data.compare_at_price = Number(data.compare_at_price);
-      if (data.stock_quantity) data.stock_quantity = Number(data.stock_quantity);
     } catch (_e) {}
 
     try {

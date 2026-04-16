@@ -8,7 +8,7 @@ interface CartContextValue {
   cart: Cart | null;
   isLoading: boolean;
   itemCount: number;
-  addItem: (productId: number, quantity?: number) => Promise<void>;
+  addItem: (productId: number, quantity?: number, selectedSize?: string | null) => Promise<void>;
   removeItem: (itemId: number) => Promise<void>;
   updateItem: (itemId: number, quantity: number) => Promise<void>;
   clearCart: () => Promise<void>;
@@ -31,8 +31,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const invalidateCart = () => queryClient.invalidateQueries({ queryKey: ['cart'] });
 
-  const addItem = async (productId: number, quantity = 1) => {
-    await cartService.addItem(productId, quantity);
+  const addItem = async (productId: number, quantity = 1, selectedSize?: string | null) => {
+    await cartService.addItem(productId, quantity, selectedSize);
     await invalidateCart();
   };
 

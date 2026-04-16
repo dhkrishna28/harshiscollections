@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -28,12 +28,31 @@ export default function ProductDetail() {
   });
 
   const product = data?.data;
+  const sizeInventory = product?.size_inventory ?? [];
+  const hasSizeInventory = sizeInventory.length > 0;
+  const selectedSizeInventory = hasSizeInventory
+    ? sizeInventory.find((entry) => entry.size === selectedSize) ?? null
+    : null;
+
+  useEffect(() => {
+    if (!hasSizeInventory) return;
+    if (!selectedSize) {
+      setQuantity(1);
+      return;
+    }
+    const nextStock = selectedSizeInventory?.stock_quantity ?? 0;
+    setQuantity((current) => Math.min(Math.max(1, nextStock || 1), current));
+  }, [hasSizeInventory, selectedSize, selectedSizeInventory]);
 
   const handleAddToCart = async () => {
     if (!product) return;
+    if (hasSizeInventory && !selectedSize) {
+      toast.error('Please select a size.');
+      return;
+    }
     setAdding(true);
     try {
-      await addItem(product.id, quantity);
+      await addItem(product.id, quantity, selectedSize);
       toast.success('Added to cart!');
     } catch {
       toast.error('Could not add to cart.');
@@ -56,7 +75,12 @@ export default function ProductDetail() {
   const mainImage = activeImage ?? (product.images?.[0]?.image_path ? `${API_ORIGIN}${product.images[0].image_path}` : '/placeholder.png');
 
   const isOutOfStock =
-    product.stock_quantity === 0 || product.availability_status === 'out_of_stock';
+    hasSizeInventory
+      ? !selectedSizeInventory || selectedSizeInventory.stock_quantity === 0
+      : product.stock_quantity === 0 || product.availability_status === 'out_of_stock';
+  const displayStock = hasSizeInventory
+    ? (selectedSizeInventory?.stock_quantity ?? 0)
+    : product.stock_quantity;
 
   const hasDiscount =
     !!product.compare_at_price && Number(product.compare_at_price) > Number(product.price);
@@ -176,20 +200,27 @@ export default function ProductDetail() {
                   )}
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {product.sizes.map((size) => (
+                  {product.sizes.map((size) => {
+                    const sizeEntry = sizeInventory.find((entry) => entry.size === size);
+                    const disabled = !!sizeEntry && sizeEntry.stock_quantity === 0;
+                    return (
                     <button
                       key={size}
                       type="button"
                       onClick={() => setSelectedSize(selectedSize === size ? null : size)}
+                      disabled={disabled}
                       className={`px-3 py-1.5 rounded-lg border text-sm font-medium transition ${
                         selectedSize === size
                           ? 'bg-primary-600 text-white border-primary-600'
-                          : 'bg-white text-gray-700 border-gray-300 hover:border-primary-400'
+                          : disabled
+                            ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                            : 'bg-white text-gray-700 border-gray-300 hover:border-primary-400'
                       }`}
                     >
                       {size}
                     </button>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -207,21 +238,25 @@ export default function ProductDetail() {
                 <input
                   type="number"
                   min={1}
-                  max={product.stock_quantity}
+                  max={Math.max(1, displayStock)}
                   value={quantity}
                   onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
                   className="w-12 text-center text-sm border-0 focus:ring-0 bg-transparent"
                 />
                 <button
                   type="button"
-                  onClick={() => setQuantity((q) => Math.min(product.stock_quantity, q + 1))}
+                  onClick={() => setQuantity((q) => Math.min(Math.max(1, displayStock), q + 1))}
                   className="px-3 py-2 text-gray-600 hover:bg-gray-100 text-lg leading-none"
                 >
                   +
                 </button>
               </div>
               <span className={`text-sm ${isOutOfStock ? 'text-red-500 font-medium' : 'text-gray-500'}`}>
-                {isOutOfStock ? 'Out of Stock' : `${product.stock_quantity} in stock`}
+                {hasSizeInventory && !selectedSize
+                  ? 'Select a size to see stock'
+                  : isOutOfStock
+                    ? 'Out of Stock'
+                    : `${displayStock} in stock`}
               </span>
             </div>
 

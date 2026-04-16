@@ -43,6 +43,9 @@ export default function Cart() {
                     <Link to={`/products/${item.product.slug}`} className="font-medium text-gray-900 hover:text-primary-600 truncate block">
                       {item.product.name}
                     </Link>
+                    {item.selected_size && (
+                      <p className="text-xs text-gray-500 mt-1">Size: {item.selected_size}</p>
+                    )}
                     <p className="text-primary-600 font-semibold mt-1">₹{price}</p>
                   </div>
                   <input
