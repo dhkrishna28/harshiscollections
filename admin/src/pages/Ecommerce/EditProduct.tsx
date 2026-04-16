@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useParams, useNavigate } from "react-router";
 import RichTextEditor from "../../components/form/RichTextEditor";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { productService } from "../../services/productService";
+import { productService, type SizeInventoryItem } from "../../services/productService";
 import { categoryService } from "../../services/categoryService";
 
 const inputClassName =
@@ -88,10 +88,9 @@ export default function EditProduct() {
   const [shippingInfo, setShippingInfo] = useState("");
   const [idealFor, setIdealFor] = useState("");
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
+  const [sizeInventory, setSizeInventory] = useState<SizeInventoryItem[]>([]);
   const [price, setPrice] = useState("");
   const [compareAtPrice, setCompareAtPrice] = useState("");
-  const [availabilityStatus, setAvailabilityStatus] = useState("in_stock");
-  const [stockQty, setStockQty] = useState(1);
   const [newImageFiles, setNewImageFiles] = useState<File[]>([]);
   const [newImagePreviews, setNewImagePreviews] = useState<string[]>([]);
   const [submitError, setSubmitError] = useState("");
@@ -122,8 +121,7 @@ export default function EditProduct() {
     setSku(product.sku ?? "");
     setPrice(String(product.price));
     setCompareAtPrice(product.compare_at_price != null ? String(product.compare_at_price) : "");
-    setAvailabilityStatus(product.availability_status ?? "in_stock");
-    setStockQty(product.stock_quantity ?? 0);
+    setSizeInventory(product.size_inventory ?? []);
     // Extended fields only present on full getById response
     const p = product as unknown as Record<string, unknown>;
     setMaterial(String(p.material ?? ""));
@@ -190,10 +188,9 @@ export default function EditProduct() {
         shipping_info: shippingInfo || undefined,
         ideal_for: idealFor || undefined,
         sizes: selectedSizes.length > 0 ? selectedSizes : undefined,
+        size_inventory: sizeInventory,
         price: Number(price),
         compare_at_price: compareAtPrice ? Number(compareAtPrice) : null,
-        availability_status: availabilityStatus || "in_stock",
-        stock_quantity: stockQty,
         status,
       },
       files: newImageFiles,
@@ -206,10 +203,36 @@ export default function EditProduct() {
   };
 
   const toggleSize = (size: string) => {
-    setSelectedSizes((prev) =>
-      prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size]
+    setSelectedSizes((prev) => {
+      const next = prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size];
+      setSizeInventory((current) => {
+        if (next.includes(size)) {
+          return current.some((item) => item.size === size)
+            ? current
+            : [...current, { size, stock_quantity: 0, availability_status: 'out_of_stock' }];
+        }
+        return current.filter((item) => item.size !== size);
+      });
+      return next;
+    });
+  };
+
+  const updateSizeStock = (size: string, stock: number) => {
+    setSizeInventory((current) =>
+      current.map((item) =>
+        item.size === size
+          ? {
+              ...item,
+              stock_quantity: Math.max(0, stock),
+              availability_status: Math.max(0, stock) > 0 ? 'in_stock' : 'out_of_stock',
+            }
+          : item
+      )
     );
   };
+
+  const totalStock = sizeInventory.reduce((sum, item) => sum + item.stock_quantity, 0);
+  const derivedAvailability = totalStock > 0 ? "in_stock" : "out_of_stock";
 
   // Previews for newly selected files in edit form
   useEffect(() => {
@@ -470,7 +493,7 @@ export default function EditProduct() {
             <h2 className="text-lg font-medium text-gray-800 dark:text-white">Pricing &amp; Availability</h2>
           </div>
           <div className="p-4 sm:p-6 space-y-5">
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
               <div>
                 <label className={labelClassName}>Price (₹)</label>
                 <input placeholder="e.g. 2100" className={inputClassName} type="number" min={0} value={price} onChange={(e) => setPrice(e.target.value)} />
@@ -479,37 +502,46 @@ export default function EditProduct() {
                 <label className={labelClassName}>Compare-at Price (₹)</label>
                 <input placeholder="e.g. 2500" className={inputClassName} type="number" min={0} value={compareAtPrice} onChange={(e) => setCompareAtPrice(e.target.value)} />
               </div>
-              <div>
-                <label className={labelClassName}>Availability Status</label>
-                <div className="relative">
-                  <select className={selectClassName} value={availabilityStatus} onChange={(e) => setAvailabilityStatus(e.target.value)}>
-                    <option value="in_stock" className="text-gray-700 dark:bg-gray-900 dark:text-gray-400">In Stock</option>
-                    <option value="out_of_stock" className="text-gray-700 dark:bg-gray-900 dark:text-gray-400">Out of Stock</option>
-                  </select>
-                  <ChevronDownIcon />
-                </div>
-              </div>
             </div>
-            <div className="max-w-[200px]">
-              <label className="mb-1 inline-block text-sm font-semibold text-gray-700 dark:text-gray-400">Stock Quantity</label>
-              <div className="flex h-11 divide-x divide-gray-300 overflow-hidden rounded-lg border border-gray-300 dark:divide-gray-800 dark:border-gray-700">
-                <button type="button" onClick={() => setStockQty((q) => Math.max(0, q - 1))}
-                  className="inline-flex h-11 w-11 items-center justify-center bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-gray-800">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="25" height="24" viewBox="0 0 25 24" fill="none">
-                    <path d="M6.66699 12H18.6677" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </button>
-                <div className="flex-1">
-                  <input className="h-full w-full border-0 bg-white text-center text-sm text-gray-700 outline-none focus:ring-0 dark:bg-gray-900 dark:text-gray-400"
-                    type="text" value={stockQty} onChange={(e) => setStockQty(Number(e.target.value) || 0)} />
+
+            <div className="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-800 dark:text-white/90">Size-wise Inventory</h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Stock is controlled per selected size and product stock is derived automatically.</p>
                 </div>
-                <button type="button" onClick={() => setStockQty((q) => q + 1)}
-                  className="inline-flex h-11 w-11 items-center justify-center bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-gray-800">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="25" height="24" viewBox="0 0 25 24" fill="none">
-                    <path d="M6.66699 12.0002H18.6677M12.6672 6V18.0007" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </button>
+                <div className="text-sm text-gray-600 dark:text-gray-300">
+                  Total Stock: <span className="font-semibold">{totalStock}</span>
+                  <span className="ml-3">Availability: <span className="font-semibold capitalize">{derivedAvailability.replace('_', ' ')}</span></span>
+                </div>
               </div>
+              {selectedSizes.length === 0 ? (
+                <p className="text-sm text-amber-600 dark:text-amber-400">Select one or more sizes above to manage inventory.</p>
+              ) : (
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  {selectedSizes.map((size) => {
+                    const stock = sizeInventory.find((item) => item.size === size)?.stock_quantity ?? 0;
+                    return (
+                      <div key={size} className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+                        <div className="mb-2 flex items-center justify-between">
+                          <span className="font-medium text-gray-800 dark:text-white/90">{size}</span>
+                          <span className={`text-xs font-medium ${stock > 0 ? 'text-green-600' : 'text-red-500'}`}>
+                            {stock > 0 ? 'In Stock' : 'Out of Stock'}
+                          </span>
+                        </div>
+                        <input
+                          type="number"
+                          min={0}
+                          value={stock}
+                          onChange={(e) => updateSizeStock(size, Number(e.target.value) || 0)}
+                          className={inputClassName}
+                          placeholder={`Stock for ${size}`}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         </div>

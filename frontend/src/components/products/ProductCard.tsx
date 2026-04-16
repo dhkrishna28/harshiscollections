@@ -9,12 +9,18 @@ const API_BASE = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.repl
 export default function ProductCard({ product }: { product: Product }) {
   const { addItem } = useCart();
   const { isAuthenticated } = useAuth();
+  const hasSizeInventory = (product.size_inventory?.length ?? 0) > 0;
+  const isOutOfStock = product.stock_quantity === 0;
 
 
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
     if (!isAuthenticated) {
       toast.error('Please login to add items to cart.');
+      return;
+    }
+    if (hasSizeInventory) {
+      toast.error('Please choose a size on the product page.');
       return;
     }
     try {
@@ -54,10 +60,10 @@ export default function ProductCard({ product }: { product: Product }) {
           </div>
           <button
             onClick={handleAddToCart}
-            disabled={product.stock_quantity === 0}
+            disabled={isOutOfStock}
             className="text-xs btn-primary py-1 px-3 disabled:opacity-50"
           >
-            {product.stock_quantity === 0 ? 'Out' : 'Add'}
+            {isOutOfStock ? 'Out' : hasSizeInventory ? 'Select' : 'Add'}
           </button>
         </div>
       </div>

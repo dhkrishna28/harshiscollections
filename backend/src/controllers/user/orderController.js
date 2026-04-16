@@ -2,6 +2,7 @@ const { Order, OrderItem, Cart, CartItem, Product, ProductImage, Transaction } =
 const { sequelize } = require('../../models');
 const { Op } = require('sequelize');
 const { v4: uuidv4 } = require('uuid');
+const { getSizeInventoryEntry, normalizeSizeInventory } = require('../../utils/sizeInventory');
 const placeOrder = async (req, res, next) => {
   const t = await sequelize.transaction();
   try {
@@ -36,7 +37,31 @@ const placeOrder = async (req, res, next) => {
     const orderItems = [];
     for (const item of cart.items) {
       const product = productsById.get(item.product_id);
-      if (!product || !product.is_active || product.stock_quantity < item.quantity) {
+      if (!product || !product.is_active) {
+        await t.rollback();
+        return res.status(400).json({
+          success: false,
+          message: `"${item.product?.name || 'Product'}" is out of stock.`,
+        });
+      }
+
+      const sizeEntry = getSizeInventoryEntry(product.size_inventory, item.selected_size);
+      if (Array.isArray(product.size_inventory) && product.size_inventory.length > 0) {
+        if (!item.selected_size) {
+          await t.rollback();
+          return res.status(400).json({
+            success: false,
+            message: `Please select a size for "${item.product?.name || 'Product'}".`,
+          });
+        }
+        if (!sizeEntry || sizeEntry.stock_quantity < item.quantity) {
+          await t.rollback();
+          return res.status(400).json({
+            success: false,
+            message: `"${item.product?.name || 'Product'}" in size ${item.selected_size} is out of stock.`,
+          });
+        }
+      } else if (product.stock_quantity < item.quantity) {
         await t.rollback();
         return res.status(400).json({
           success: false,
@@ -50,6 +75,7 @@ const placeOrder = async (req, res, next) => {
         product_id: product.id,
         product_name: product.name,
         product_sku: product.sku,
+        selected_size: item.selected_size || null,
         quantity: item.quantity,
         unit_price,
         total_price,
@@ -77,10 +103,32 @@ const placeOrder = async (req, res, next) => {
     for (const item of orderItems) {
       await OrderItem.create({ ...item, order_id: order.id }, { transaction: t });
       const product = productsById.get(item.product_id);
-      await product.update(
-        { stock_quantity: product.stock_quantity - item.quantity },
-        { transaction: t }
-      );
+      if (Array.isArray(product.size_inventory) && product.size_inventory.length > 0 && item.selected_size) {
+        const nextInventory = normalizeSizeInventory(product.size_inventory).map((entry) =>
+          entry.size === item.selected_size
+            ? {
+                ...entry,
+                stock_quantity: Math.max(0, entry.stock_quantity - item.quantity),
+                availability_status: Math.max(0, entry.stock_quantity - item.quantity) > 0 ? 'in_stock' : 'out_of_stock',
+              }
+            : entry
+        );
+        const stock_quantity = nextInventory.reduce((sum, entry) => sum + entry.stock_quantity, 0);
+        await product.update(
+          {
+            size_inventory: nextInventory,
+            sizes: nextInventory.map((entry) => entry.size),
+            stock_quantity,
+            availability_status: stock_quantity > 0 ? 'in_stock' : 'out_of_stock',
+          },
+          { transaction: t }
+        );
+      } else {
+        await product.update(
+          { stock_quantity: product.stock_quantity - item.quantity },
+          { transaction: t }
+        );
+      }
     }
 
     // Create transaction record

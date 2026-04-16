@@ -49,6 +49,12 @@ const orderRules = [
   body('notes').optional({ values: 'falsy' }).isLength({ max: 2000 }).withMessage('Notes are too long.'),
 ];
 
+const cartItemRules = [
+  body('product_id').isInt({ min: 1 }).withMessage('Product is required.'),
+  body('quantity').optional({ values: 'falsy' }).isInt({ min: 1 }).withMessage('Quantity must be at least 1.'),
+  body('selected_size').optional({ values: 'falsy' }).trim().isLength({ min: 1, max: 40 }).withMessage('Selected size looks invalid.'),
+];
+
 const profileRules = [
   body('first_name').optional().trim().isLength({ min: 1, max: 80 }).withMessage('First name looks invalid.'),
   body('last_name').optional().trim().isLength({ min: 1, max: 80 }).withMessage('Last name looks invalid.'),
@@ -83,10 +89,21 @@ const productCreateRules = [
   body('category_id').isInt({ min: 1 }).withMessage('Category is required.'),
   body('price').isFloat({ min: 0 }).withMessage('Price must be a non-negative number.'),
   body('compare_at_price').optional({ values: 'falsy' }).isFloat({ min: 0 }).withMessage('Compare-at price must be a non-negative number.'),
-  body('stock_quantity').optional({ values: 'falsy' }).isInt({ min: 0 }).withMessage('Stock quantity must be a non-negative integer.'),
-  body('availability_status').optional({ values: 'falsy' }).isIn(['in_stock', 'out_of_stock']).withMessage('Availability status is invalid.'),
   body('status').optional({ values: 'falsy' }).isIn(['draft', 'published']).withMessage('Status is invalid.'),
   body('is_featured').optional({ values: 'falsy' }).isBoolean().withMessage('is_featured must be true or false.'),
+  body('size_inventory').optional({ values: 'falsy' }).custom((value) => {
+    const parsed = typeof value === 'string' ? JSON.parse(value) : value;
+    if (!Array.isArray(parsed)) throw new Error('Size inventory must be an array.');
+    for (const item of parsed) {
+      if (!item || typeof item.size !== 'string' || item.size.trim().length === 0) {
+        throw new Error('Each size inventory row must include a size.');
+      }
+      if (!Number.isFinite(Number(item.stock_quantity)) || Number(item.stock_quantity) < 0) {
+        throw new Error('Each size inventory row must include a valid stock quantity.');
+      }
+    }
+    return true;
+  }),
 ];
 
 const productUpdateRules = [
@@ -95,10 +112,21 @@ const productUpdateRules = [
   body('category_id').optional({ values: 'falsy' }).isInt({ min: 1 }).withMessage('Category must be a valid category id.'),
   body('price').optional({ values: 'falsy' }).isFloat({ min: 0 }).withMessage('Price must be a non-negative number.'),
   body('compare_at_price').optional({ values: 'falsy' }).isFloat({ min: 0 }).withMessage('Compare-at price must be a non-negative number.'),
-  body('stock_quantity').optional({ values: 'falsy' }).isInt({ min: 0 }).withMessage('Stock quantity must be a non-negative integer.'),
-  body('availability_status').optional({ values: 'falsy' }).isIn(['in_stock', 'out_of_stock']).withMessage('Availability status is invalid.'),
   body('status').optional({ values: 'falsy' }).isIn(['draft', 'published']).withMessage('Status is invalid.'),
   body('is_featured').optional({ values: 'falsy' }).isBoolean().withMessage('is_featured must be true or false.'),
+  body('size_inventory').optional({ values: 'falsy' }).custom((value) => {
+    const parsed = typeof value === 'string' ? JSON.parse(value) : value;
+    if (!Array.isArray(parsed)) throw new Error('Size inventory must be an array.');
+    for (const item of parsed) {
+      if (!item || typeof item.size !== 'string' || item.size.trim().length === 0) {
+        throw new Error('Each size inventory row must include a size.');
+      }
+      if (!Number.isFinite(Number(item.stock_quantity)) || Number(item.stock_quantity) < 0) {
+        throw new Error('Each size inventory row must include a valid stock quantity.');
+      }
+    }
+    return true;
+  }),
 ];
 
 const adminOrderStatusRules = [
@@ -144,4 +172,5 @@ module.exports = {
   cmsPageRules,
   contactRules,
   contactUpdateRules,
+  cartItemRules,
 };

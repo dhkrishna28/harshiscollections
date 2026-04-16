@@ -80,6 +80,7 @@ CREATE TABLE IF NOT EXISTS products (
   ideal_for LONGTEXT,
   -- ── Sizes – stored as JSON array e.g. ["S","M","L","XL","34"] ─
   sizes JSON,
+  size_inventory JSON,
   -- ── Identifiers ───────────────────────────────────────────────
   sku VARCHAR(80) UNIQUE,
   -- ── Pricing ───────────────────────────────────────────────────
@@ -128,6 +129,7 @@ CREATE TABLE IF NOT EXISTS cart_items (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   cart_id INT UNSIGNED NOT NULL,
   product_id INT UNSIGNED NOT NULL,
+  selected_size VARCHAR(40),
   quantity INT NOT NULL DEFAULT 1,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -167,6 +169,7 @@ CREATE TABLE IF NOT EXISTS order_items (
   product_id INT UNSIGNED NOT NULL,
   product_name VARCHAR(200) NOT NULL,
   product_sku VARCHAR(80),
+  selected_size VARCHAR(40),
   quantity INT NOT NULL,
   unit_price DECIMAL(10,2) NOT NULL,
   total_price DECIMAL(10,2) NOT NULL,

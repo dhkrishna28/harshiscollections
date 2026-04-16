@@ -109,6 +109,7 @@ export default function SingleTransaction() {
                   <table className="min-w-full text-left text-sm text-gray-700 dark:border-gray-800">
                     <thead className="bg-gray-50 dark:bg-gray-900">
                       <tr className="border-b border-gray-100 whitespace-nowrap dark:border-gray-800">
+                        <th className="px-5 py-4 text-sm font-medium text-gray-700 dark:text-gray-400">Product</th>
                         <th className="px-5 py-4 text-sm font-medium text-gray-700 dark:text-gray-400">SKU</th>
                         <th className="px-5 py-4 text-sm font-medium text-gray-700 dark:text-gray-400">Qty</th>
                         <th className="px-5 py-4 text-sm font-medium text-gray-700 dark:text-gray-400">Unit Price</th>
@@ -116,6 +117,28 @@ export default function SingleTransaction() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 bg-white dark:divide-gray-800 dark:bg-white/[0.03]">
+                      {items.map((item) => (
+                        <tr key={item.id} className="align-top">
+                          <td className="px-5 py-4">
+                            <div className="font-medium text-gray-800 dark:text-white/90">
+                              {item.product_name ?? item.product?.name ?? "Product"}
+                            </div>
+                            {item.selected_size && (
+                              <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                Size: {item.selected_size}
+                              </div>
+                            )}
+                          </td>
+                          <td className="px-5 py-4 text-sm text-gray-700 dark:text-gray-300">
+                            {item.product?.sku ?? "—"}
+                          </td>
+                          <td className="px-5 py-4 text-sm text-gray-700 dark:text-gray-300">{item.quantity}</td>
+                          <td className="px-5 py-4 text-sm text-gray-700 dark:text-gray-300">{fmt(item.unit_price)}</td>
+                          <td className="px-5 py-4 text-sm font-medium text-gray-800 dark:text-white/90">
+                            {fmt(item.total_price ?? item.unit_price * item.quantity)}
+                          </td>
+                        </tr>
+                      ))}
                       {items.length === 0 && (
                         <tr>
                           <td colSpan={6} className="px-5 py-6 text-center text-sm text-gray-500 dark:text-gray-400">No items found.</td>
@@ -200,4 +223,3 @@ export default function SingleTransaction() {
     </div>
   );
 }
-

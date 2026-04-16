@@ -38,6 +38,12 @@ export interface ProductImage {
   sort_order: number;
 }
 
+export interface SizeInventoryItem {
+  size: string;
+  stock_quantity: number;
+  availability_status: 'in_stock' | 'out_of_stock';
+}
+
 export interface Product {
   id: number;
   category_id: number;
@@ -58,6 +64,7 @@ export interface Product {
   ideal_for?: string;
   // Sizes
   sizes?: string[];
+  size_inventory?: SizeInventoryItem[];
   // Identifiers / Pricing
   sku?: string;
   price: number;                          // selling price
@@ -75,6 +82,7 @@ export interface CartItem {
   id: number;
   cart_id: number;
   product_id: number;
+  selected_size?: string | null;
   quantity: number;
   product: Product;
 }
@@ -92,6 +100,7 @@ export interface OrderItem {
   id: number;
   product_id: number;
   product_name: string;
+  selected_size?: string | null;
   quantity: number;
   unit_price: number;
   total_price: number;

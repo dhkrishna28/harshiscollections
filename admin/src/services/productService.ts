@@ -6,6 +6,12 @@ export interface ProductImage {
   sort_order: number;
 }
 
+export interface SizeInventoryItem {
+  size: string;
+  stock_quantity: number;
+  availability_status: 'in_stock' | 'out_of_stock';
+}
+
 export interface AdminProduct {
   id: number;
   name: string;
@@ -21,6 +27,8 @@ export interface AdminProduct {
   is_active: boolean;
   is_featured: boolean;
   stock_quantity: number;
+  sizes?: string[];
+  size_inventory?: SizeInventoryItem[];
   images?: ProductImage[];
   created_at: string;
 }
@@ -52,11 +60,10 @@ export interface CreateProductPayload {
   shipping_info?: string;
   ideal_for?: string;
   sizes?: string[];
+  size_inventory?: SizeInventoryItem[];
   price: number;
   compare_at_price?: number | null;
-  availability_status?: string;
   status?: string;
-  stock_quantity?: number;
   is_featured?: boolean;
   meta_title?: string;
   meta_description?: string;
