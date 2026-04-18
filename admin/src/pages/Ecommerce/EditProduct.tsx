@@ -113,6 +113,8 @@ export default function EditProduct() {
   const [idealFor, setIdealFor] = useState("");
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [sizeInventory, setSizeInventory] = useState<SizeInventoryItem[]>([]);
+  // transient string inputs for size fields to allow natural typing (e.g. empty, leading zeros)
+  const [sizeInputs, setSizeInputs] = useState<Record<string, string>>({});
   const [price, setPrice] = useState("");
   const [compareAtPrice, setCompareAtPrice] = useState("");
   const [newImageFiles, setNewImageFiles] = useState<File[]>([]);
@@ -270,12 +272,10 @@ export default function EditProduct() {
     });
   };
 
-  const normalizeSize = (s: string) => String(s).toUpperCase();
-
   const updateSizeStock = (size: string, stock: number) => {
     setSizeInventory((current) =>
       current.map((item) =>
-        normalizeSize(item.size) === normalizeSize(size)
+        item.size === size
           ? {
               ...item,
               stock_quantity: Math.max(0, stock),
@@ -286,6 +286,18 @@ export default function EditProduct() {
       ),
     );
   };
+
+  // keep sizeInputs in sync with numeric sizeInventory so the UI shows current values
+  useEffect(() => {
+    // Only update keys that exist in sizeInventory so we don't overwrite user edits unnecessarily
+    setSizeInputs((prev) => {
+      const next = { ...prev } as Record<string, string>;
+      sizeInventory.forEach((it) => {
+        next[it.size] = String(it.stock_quantity ?? "");
+      });
+      return next;
+    });
+  }, [sizeInventory]);
 
   const totalStock = sizeInventory.reduce(
     (sum, item) => sum + item.stock_quantity,
@@ -805,9 +817,9 @@ export default function EditProduct() {
               ) : (
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   {selectedSizes.map((size) => {
-                    const stock =
-                      sizeInventory.find((item) => item.size === size)
-                        ?.stock_quantity ?? 0;
+                    const item = sizeInventory.find((it) => it.size === size);
+                    const stock = item?.stock_quantity ?? 0;
+                    const inputVal = sizeInputs[size] ?? String(stock);
                     return (
                       <div
                         key={size}
@@ -825,23 +837,42 @@ export default function EditProduct() {
                         </div>
                         <input
                           type="number"
+                          inputMode="numeric"
+                          step={1}
                           min={0}
-                          value={
-                            sizeInventory.find((item) => item.size === size)
-                              ?.stock_quantity ?? ""
-                          }
+                          value={inputVal}
                           onChange={(e) => {
-                            const val = e.target.value;
-
-                            // allow typing freely
-                            if (val === "") {
+                            const v = e.target.value;
+                            setSizeInputs((prev) => ({ ...prev, [size]: v }));
+                            // update numeric inventory for valid numbers (keep typing fluid)
+                            if (v === "") {
                               updateSizeStock(size, 0);
-                              return;
+                            } else {
+                              const parsed = Number(v);
+                              if (!Number.isNaN(parsed))
+                                updateSizeStock(size, parsed);
                             }
-
-                            if (!/^\d+$/.test(val)) return; // only numbers
-
-                            updateSizeStock(size, Number(val));
+                          }}
+                          onBlur={() => {
+                            const v = sizeInputs[size];
+                            if (
+                              v == null ||
+                              v === "" ||
+                              Number.isNaN(Number(v))
+                            ) {
+                              setSizeInputs((prev) => ({
+                                ...prev,
+                                [size]: "0",
+                              }));
+                              updateSizeStock(size, 0);
+                            } else {
+                              const parsed = Number(v);
+                              setSizeInputs((prev) => ({
+                                ...prev,
+                                [size]: String(parsed),
+                              }));
+                              updateSizeStock(size, parsed);
+                            }
                           }}
                           className={inputClassName}
                           placeholder={`Stock for ${size}`}
