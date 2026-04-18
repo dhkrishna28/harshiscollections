@@ -24,4 +24,26 @@
   .label {
     @apply block text-sm font-medium text-gray-700 mb-1;
   }
+  /* Site specific tweaks to give a more premium, textile-store look similar to Looms & Tassels */
+  .site-logo {
+    @apply text-2xl font-serif tracking-tight text-primary-700;
+  }
+  .hero-title {
+    @apply font-serif text-4xl md:text-5xl leading-tight text-gray-900;
+  }
+  .hero-sub {
+    @apply text-lg text-gray-600;
+  }
+  .product-badge {
+    @apply absolute top-3 left-3 bg-white/90 text-xs text-gray-800 px-2 py-1 rounded-md font-medium shadow-sm;
+  }
+  .price-current {
+    @apply font-semibold text-gray-900;
+  }
+  .price-compare {
+    @apply text-sm text-gray-400 line-through;
+  }
+  .category-chip {
+    @apply inline-block px-3 py-1.5 rounded-full border border-gray-200 text-sm text-gray-700 bg-white hover:bg-gray-50;
+  }
 }

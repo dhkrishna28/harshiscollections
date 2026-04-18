@@ -1,15 +1,24 @@
-import { useEffect, useState } from 'react';
-import { Helmet } from 'react-helmet-async';
-import { useParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import toast from 'react-hot-toast';
-import { productService } from '../services/productService';
-import { useCart } from '../context/CartContext';
+import { useEffect, useState } from "react";
+import { Helmet } from "react-helmet-async";
+import { useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import toast from "react-hot-toast";
+import { productService } from "../services/productService";
+import { useCart } from "../context/CartContext";
 
 const API_ORIGIN =
-  (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace('/api', '') || '';
+  (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(
+    "/api",
+    "",
+  ) || "";
 
-const TABS = ['Description', 'Specifications', 'Wash Care', 'Shipping', 'Ideal For'] as const;
+const TABS = [
+  "Description",
+  "Specifications",
+  "Wash Care",
+  "Shipping",
+  "Ideal For",
+] as const;
 type Tab = (typeof TABS)[number];
 
 export default function ProductDetail() {
@@ -18,11 +27,11 @@ export default function ProductDetail() {
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [activeImage, setActiveImage] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<Tab>('Description');
+  const [activeTab, setActiveTab] = useState<Tab>("Description");
   const [adding, setAdding] = useState(false);
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['product', slug],
+    queryKey: ["product", slug],
     queryFn: () => productService.getBySlug(slug!),
     enabled: !!slug,
   });
@@ -31,7 +40,7 @@ export default function ProductDetail() {
   const sizeInventory = product?.size_inventory ?? [];
   const hasSizeInventory = sizeInventory.length > 0;
   const selectedSizeInventory = hasSizeInventory
-    ? sizeInventory.find((entry) => entry.size === selectedSize) ?? null
+    ? (sizeInventory.find((entry) => entry.size === selectedSize) ?? null)
     : null;
 
   useEffect(() => {
@@ -47,15 +56,15 @@ export default function ProductDetail() {
   const handleAddToCart = async () => {
     if (!product) return;
     if (hasSizeInventory && !selectedSize) {
-      toast.error('Please select a size.');
+      toast.error("Please select a size.");
       return;
     }
     setAdding(true);
     try {
       await addItem(product.id, quantity, selectedSize);
-      toast.success('Added to cart!');
+      toast.success("Added to cart!");
     } catch {
-      toast.error('Could not add to cart.');
+      toast.error("Could not add to cart.");
     } finally {
       setAdding(false);
     }
@@ -69,78 +78,96 @@ export default function ProductDetail() {
     );
   }
   if (isError || !product) {
-    return <div className="text-center py-32 text-gray-500">Product not found.</div>;
+    return (
+      <div className="text-center py-32 text-gray-500">Product not found.</div>
+    );
   }
 
-  const mainImage = activeImage ?? (product.images?.[0]?.image_path ? `${API_ORIGIN}${product.images[0].image_path}` : '/placeholder.png');
+  const mainImage =
+    activeImage ??
+    (product.images?.[0]?.image_path
+      ? `${API_ORIGIN}${product.images[0].image_path}`
+      : "/placeholder.png");
 
-  const isOutOfStock =
-    hasSizeInventory
-      ? !selectedSizeInventory || selectedSizeInventory.stock_quantity === 0
-      : product.stock_quantity === 0 || product.availability_status === 'out_of_stock';
+  const isOutOfStock = hasSizeInventory
+    ? !selectedSizeInventory || selectedSizeInventory.stock_quantity === 0
+    : product.stock_quantity === 0 ||
+      product.availability_status === "out_of_stock";
   const displayStock = hasSizeInventory
     ? (selectedSizeInventory?.stock_quantity ?? 0)
     : product.stock_quantity;
 
   const hasDiscount =
-    !!product.compare_at_price && Number(product.compare_at_price) > Number(product.price);
+    !!product.compare_at_price &&
+    Number(product.compare_at_price) > Number(product.price);
 
   const discountPct = hasDiscount
     ? Math.round(
         ((Number(product.compare_at_price) - Number(product.price)) /
           Number(product.compare_at_price)) *
-          100
+          100,
       )
     : 0;
 
   // Only render populated attribute rows
   const attrs: [string, string][] = (
     [
-      ['Brand', product.brand],
-      ['Material', product.material],
-      ['Craft / Print Type', product.craft_print_type],
-      ['Style', product.style],
-      ['Neckline', product.neckline],
-      ['SKU', product.sku],
+      ["Brand", product.brand],
+      ["Material", product.material],
+      ["Craft / Print Type", product.craft_print_type],
+      ["Style", product.style],
+      ["Neckline", product.neckline],
+      ["SKU", product.sku],
     ] as [string, string | undefined][]
   ).filter((row): row is [string, string] => !!row[1]);
 
   const tabContent: Record<Tab, string | undefined | null> = {
     Description: product.description,
     Specifications: product.specifications,
-    'Wash Care': product.wash_care,
+    "Wash Care": product.wash_care,
     Shipping: product.shipping_info,
-    'Ideal For': product.ideal_for,
+    "Ideal For": product.ideal_for,
   };
   const visibleTabs = TABS.filter((t) => !!tabContent[t]);
 
   return (
     <>
-  <Helmet><title>{product.name} – Harshis Collections</title></Helmet>
+      <Helmet>
+        <title>{product.name} – Harshis Collections</title>
+      </Helmet>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
           {/* ── Image Gallery ──────────────────────────────────── */}
-          <div>
-            <div className="rounded-xl overflow-hidden bg-gray-100 aspect-square">
-              <img src={mainImage} alt={product.name} className="w-full h-full object-cover" />
+          <div className="flex gap-6">
+            <div className="w-full md:w-[420px] rounded-xl overflow-hidden bg-gray-100">
+              <img
+                src={mainImage}
+                alt={product.name}
+                className="w-full h-full object-cover"
+              />
             </div>
 
             {(product.images?.length ?? 0) > 0 && (
-              <div className="flex gap-3 mt-4 overflow-x-auto pb-1">
+              <div className="hidden md:flex flex-col gap-3 w-24">
                 {product.images!.map((img) => (
                   <button
                     key={img.id}
                     type="button"
-                    onClick={() => setActiveImage(`${API_ORIGIN}${img.image_path}`)}
-                    className={`shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition ${
+                    onClick={() =>
+                      setActiveImage(`${API_ORIGIN}${img.image_path}`)
+                    }
+                    className={`w-24 h-24 rounded-lg overflow-hidden border-2 transition ${
                       activeImage === `${API_ORIGIN}${img.image_path}`
-                        ? 'border-primary-500'
-                        : 'border-transparent hover:border-gray-300'
+                        ? "border-primary-500"
+                        : "border-transparent hover:border-gray-300"
                     }`}
                   >
-                    <img src={`${API_ORIGIN}${img.image_path}`} alt={img.alt_text || product.name} className="w-full h-full object-cover" />
+                    <img
+                      src={`${API_ORIGIN}${img.image_path}`}
+                      alt={img.alt_text || product.name}
+                      className="w-full h-full object-cover"
+                    />
                   </button>
                 ))}
               </div>
@@ -150,21 +177,30 @@ export default function ProductDetail() {
           {/* ── Product Info ───────────────────────────────────── */}
           <div>
             {product.category && (
-              <p className="text-sm text-primary-600 font-medium mb-1">{product.category.name}</p>
+              <p className="text-sm text-primary-600 font-medium mb-1">
+                {product.category.name}
+              </p>
             )}
-            <h1 className="text-2xl font-bold text-gray-900 mb-1">{product.name}</h1>
+            <h1 className="text-2xl font-serif font-bold text-gray-900 mb-1">
+              {product.name}
+            </h1>
             {product.brand && (
               <p className="text-sm text-gray-500 mb-4">
-                by <span className="font-medium text-gray-700">{product.brand}</span>
+                by{" "}
+                <span className="font-medium text-gray-700">
+                  {product.brand}
+                </span>
               </p>
             )}
 
             {/* Price */}
             <div className="flex items-center gap-3 mb-5">
-              <span className="text-2xl font-bold text-gray-900">₹{product.price}</span>
+              <span className="text-2xl price-current">₹{product.price}</span>
               {hasDiscount && (
                 <>
-                  <span className="text-lg text-gray-400 line-through">₹{product.compare_at_price}</span>
+                  <span className="price-compare">
+                    ₹{product.compare_at_price}
+                  </span>
                   <span className="text-sm font-semibold text-green-700 bg-green-100 px-2.5 py-0.5 rounded-full">
                     {discountPct}% off
                   </span>
@@ -173,7 +209,9 @@ export default function ProductDetail() {
             </div>
 
             {product.short_description && (
-              <p className="text-gray-600 text-sm leading-relaxed mb-5">{product.short_description}</p>
+              <p className="text-gray-600 text-sm leading-relaxed mb-5">
+                {product.short_description}
+              </p>
             )}
 
             {/* Attribute grid */}
@@ -181,7 +219,9 @@ export default function ProductDetail() {
               <div className="bg-gray-50 rounded-lg px-4 py-3 mb-5 grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
                 {attrs.map(([label, value]) => (
                   <div key={label} className="flex flex-col gap-0.5">
-                    <span className="text-xs text-gray-400 uppercase tracking-wide">{label}</span>
+                    <span className="text-xs text-gray-400 uppercase tracking-wide">
+                      {label}
+                    </span>
                     <span className="font-medium text-gray-800">{value}</span>
                   </div>
                 ))}
@@ -192,33 +232,42 @@ export default function ProductDetail() {
             {product.sizes && product.sizes.length > 0 && (
               <div className="mb-5">
                 <p className="text-sm font-medium text-gray-700 mb-2">
-                  Size:{' '}
+                  Size:{" "}
                   {selectedSize ? (
-                    <span className="text-primary-600 font-semibold">{selectedSize}</span>
+                    <span className="text-primary-600 font-semibold">
+                      {selectedSize}
+                    </span>
                   ) : (
-                    <span className="text-gray-400 font-normal">Select a size</span>
+                    <span className="text-gray-400 font-normal">
+                      Select a size
+                    </span>
                   )}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {product.sizes.map((size) => {
-                    const sizeEntry = sizeInventory.find((entry) => entry.size === size);
-                    const disabled = !!sizeEntry && sizeEntry.stock_quantity === 0;
+                    const sizeEntry = sizeInventory.find(
+                      (entry) => entry.size === size,
+                    );
+                    const disabled =
+                      !!sizeEntry && sizeEntry.stock_quantity === 0;
                     return (
-                    <button
-                      key={size}
-                      type="button"
-                      onClick={() => setSelectedSize(selectedSize === size ? null : size)}
-                      disabled={disabled}
-                      className={`px-3 py-1.5 rounded-lg border text-sm font-medium transition ${
-                        selectedSize === size
-                          ? 'bg-primary-600 text-white border-primary-600'
-                          : disabled
-                            ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
-                            : 'bg-white text-gray-700 border-gray-300 hover:border-primary-400'
-                      }`}
-                    >
-                      {size}
-                    </button>
+                      <button
+                        key={size}
+                        type="button"
+                        onClick={() =>
+                          setSelectedSize(selectedSize === size ? null : size)
+                        }
+                        disabled={disabled}
+                        className={`px-3 py-1.5 rounded-lg border text-sm font-medium transition ${
+                          selectedSize === size
+                            ? "bg-primary-600 text-white border-primary-600"
+                            : disabled
+                              ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
+                              : "bg-white text-gray-700 border-gray-300 hover:border-primary-400"
+                        }`}
+                      >
+                        {size}
+                      </button>
                     );
                   })}
                 </div>
@@ -240,22 +289,30 @@ export default function ProductDetail() {
                   min={1}
                   max={Math.max(1, displayStock)}
                   value={quantity}
-                  onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                  onChange={(e) =>
+                    setQuantity(Math.max(1, parseInt(e.target.value) || 1))
+                  }
                   className="w-12 text-center text-sm border-0 focus:ring-0 bg-transparent"
                 />
                 <button
                   type="button"
-                  onClick={() => setQuantity((q) => Math.min(Math.max(1, displayStock), q + 1))}
+                  onClick={() =>
+                    setQuantity((q) =>
+                      Math.min(Math.max(1, displayStock), q + 1),
+                    )
+                  }
                   className="px-3 py-2 text-gray-600 hover:bg-gray-100 text-lg leading-none"
                 >
                   +
                 </button>
               </div>
-              <span className={`text-sm ${isOutOfStock ? 'text-red-500 font-medium' : 'text-gray-500'}`}>
+              <span
+                className={`text-sm ${isOutOfStock ? "text-red-500 font-medium" : "text-gray-500"}`}
+              >
                 {hasSizeInventory && !selectedSize
-                  ? 'Select a size to see stock'
+                  ? "Select a size to see stock"
                   : isOutOfStock
-                    ? 'Out of Stock'
+                    ? "Out of Stock"
                     : `${displayStock} in stock`}
               </span>
             </div>
@@ -263,9 +320,13 @@ export default function ProductDetail() {
             <button
               onClick={handleAddToCart}
               disabled={adding || isOutOfStock}
-              className="btn-primary w-full py-3 text-base"
+              className="btn-primary w-full py-3 text-base shadow-md"
             >
-              {isOutOfStock ? 'Out of Stock' : adding ? 'Adding…' : 'Add to Cart'}
+              {isOutOfStock
+                ? "Out of Stock"
+                : adding
+                  ? "Adding…"
+                  : "Add to Cart"}
             </button>
           </div>
         </div>
@@ -281,8 +342,8 @@ export default function ProductDetail() {
                   onClick={() => setActiveTab(tab)}
                   className={`px-5 py-3 text-sm font-medium whitespace-nowrap border-b-2 -mb-px transition ${
                     activeTab === tab
-                      ? 'border-primary-600 text-primary-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-800 hover:border-gray-300'
+                      ? "border-primary-600 text-primary-600"
+                      : "border-transparent text-gray-500 hover:text-gray-800 hover:border-gray-300"
                   }`}
                 >
                   {tab}
@@ -293,7 +354,9 @@ export default function ProductDetail() {
             {tabContent[activeTab] ? (
               <div
                 className="prose prose-sm max-w-none text-gray-700 leading-relaxed"
-                dangerouslySetInnerHTML={{ __html: tabContent[activeTab] as string }}
+                dangerouslySetInnerHTML={{
+                  __html: tabContent[activeTab] as string,
+                }}
               />
             ) : (
               <p className="text-gray-400 text-sm">No content available.</p>
