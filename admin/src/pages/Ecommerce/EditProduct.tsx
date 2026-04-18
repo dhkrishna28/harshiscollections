@@ -217,19 +217,21 @@ export default function EditProduct() {
     });
   };
 
+  const normalizeSize = (s: string) => String(s).toUpperCase();
+
   const updateSizeStock = (size: string, stock: number) => {
-    setSizeInventory((current) =>
-      current.map((item) =>
-        item.size === size
-          ? {
-              ...item,
-              stock_quantity: Math.max(0, stock),
-              availability_status: Math.max(0, stock) > 0 ? 'in_stock' : 'out_of_stock',
-            }
-          : item
-      )
-    );
-  };
+  setSizeInventory((current) =>
+    current.map((item) =>
+      normalizeSize(item.size) === normalizeSize(size)
+        ? {
+            ...item,
+            stock_quantity: Math.max(0, stock),
+            availability_status: Math.max(0, stock) > 0 ? 'in_stock' : 'out_of_stock',
+          }
+        : item
+    )
+  );
+};
 
   const totalStock = sizeInventory.reduce((sum, item) => sum + item.stock_quantity, 0);
   const derivedAvailability = totalStock > 0 ? "in_stock" : "out_of_stock";
