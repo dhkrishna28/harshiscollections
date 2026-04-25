@@ -1,3 +1,108 @@
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import Header from "@/components/majori/Header";
+import Footer from "@/components/majori/Footer";
+import Newsletter from "@/components/majori/Newsletter";
+import CartDrawer from "@/components/majori/CartDrawer";
+import MenuDrawer from "@/components/majori/MenuDrawer";
+import PageHeader from "@/components/majori/PageHeader";
+import CartLineItem from "@/components/majori/CartLineItem";
+import OrderSummary from "@/components/majori/OrderSummary";
+import { sampleCart, type CartItem } from "@/lib/cart";
+
+const Cart = () => {
+  const [cartOpen, setCartOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [items, setItems] = useState<CartItem[]>(sampleCart);
+
+  const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);
+
+  const setQty = (id: CartItem["id"], qty: number) =>
+    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, qty } : i)));
+  const remove = (id: CartItem["id"]) =>
+    setItems((prev) => prev.filter((i) => i.id !== id));
+
+  return (
+    <div className="bg-cream text-ink antialiased min-h-screen">
+      <Header
+        onOpenCart={() => setCartOpen(true)}
+        onOpenMenu={() => setMenuOpen(true)}
+      />
+
+      <PageHeader
+        title="Cart"
+        crumbs={[{ label: "Home", to: "/" }, { label: "Cart" }]}
+      />
+
+      <section className="py-10 md:py-14">
+        <div className="max-w-7xl mx-auto px-4 grid md:grid-cols-[1fr_360px] gap-10">
+          <div>
+            <div className="overflow-x-auto bg-white rounded-md p-2 md:p-6">
+              <table className="w-full text-sm min-w-[600px]">
+                <thead>
+                  <tr className="text-left text-mute uppercase text-xs tracking-wider border-b border-ink/10">
+                    <th className="py-3">Product</th>
+                    <th className="py-3 text-center">Price</th>
+                    <th className="py-3 text-center">Quantity</th>
+                    <th className="py-3 text-right">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {items.map((it) => (
+                    <CartLineItem
+                      key={it.id}
+                      item={it}
+                      onQtyChange={setQty}
+                      onRemove={remove}
+                    />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="flex flex-wrap gap-3 justify-between items-center mt-6">
+              <Link
+                to="/collection"
+                className="border border-ink px-6 py-3 text-sm uppercase tracking-wider hover:bg-ink hover:text-white transition rounded"
+              >
+                ← Continue Shopping
+              </Link>
+              <button className="bg-cream border border-ink/15 px-6 py-3 text-sm uppercase tracking-wider hover:bg-ink hover:text-white transition rounded">
+                Update Cart
+              </button>
+            </div>
+          </div>
+
+          <OrderSummary
+            subtotal={subtotal}
+            total={subtotal}
+            cta={
+              <Link
+                to="/checkout"
+                className="block text-center bg-ink text-white py-3 mt-6 uppercase tracking-wider text-sm hover:bg-brand transition rounded"
+              >
+                Checkout
+              </Link>
+            }
+            footer={
+              <p className="text-xs text-mute text-center mt-3">
+                Secure SSL encrypted payment
+              </p>
+            }
+          />
+        </div>
+      </section>
+
+      <Newsletter />
+      <Footer />
+
+      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
+      <MenuDrawer open={menuOpen} onClose={() => setMenuOpen(false)} />
+    </div>
+  );
+};
+
+export default Cart;
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { useCart } from "../context/CartContext";

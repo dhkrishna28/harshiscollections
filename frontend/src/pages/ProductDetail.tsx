@@ -61,7 +61,8 @@ export default function ProductDetail() {
     }
     setAdding(true);
     try {
-      await addItem(product.id, quantity, selectedSize);
+      // Pass full product object so guest cart can store product metadata locally
+      await addItem(product, quantity, selectedSize);
       toast.success("Added to cart!");
     } catch {
       toast.error("Could not add to cart.");

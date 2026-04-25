@@ -18,19 +18,17 @@ export default function ProductCard({ product }: { product: Product }) {
 
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
-    if (!isAuthenticated) {
-      toast.error("Please login to add items to cart.");
-      return;
-    }
     if (hasSizeInventory) {
       toast.error("Please choose a size on the product page.");
       return;
     }
     try {
-      await addItem(product.id);
+      // For guest users, pass full product so CartContext can store product metadata locally.
+      await addItem(isAuthenticated ? product.id : product);
       toast.success("Added to cart!");
-    } catch {
-      toast.error("Could not add to cart.");
+    } catch (err) {
+      // If guest flow expects a product object but received id, CartContext throws — surface a friendly message.
+      toast.error((err as Error)?.message || "Could not add to cart.");
     }
   };
 
