@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -62,6 +62,13 @@ export default function Checkout() {
       setSubmitting(false);
     }
   };
+
+  useEffect(() => {
+    // Redirect to login if user is not authenticated when accessing checkout
+    if (!user) {
+      navigate(`/auth/login?next=${encodeURIComponent("/checkout")}`);
+    }
+  }, [user]);
 
   return (
     <>

@@ -1,80 +1,63 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
-import { CartProvider } from './context/CartContext';
-import MainLayout from './layout/MainLayout';
-import AuthLayout from './layout/AuthLayout';
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/toaster";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import Index from "@/pages/Index.tsx";
+import Collection from "@/pages/Collection.tsx";
+import Product from "@/pages/Product.tsx";
+import Cart from "@/pages/Cart.tsx";
+import Checkout from "@/pages/Checkout.tsx";
+import Login from "@/pages/Login.tsx";
+import Signup from "@/pages/Signup.tsx";
+import ThankYou from "@/pages/ThankYou.tsx";
+import Account from "@/pages/Account.tsx";
+import About from "@/pages/About.tsx";
+import Blog from "@/pages/Blog.tsx";
+import BlogPost from "@/pages/BlogPost.tsx";
+import Orders from "@/pages/Orders.tsx";
+import OrderDetail from "@/pages/OrderDetail.tsx";
+import Terms from "@/pages/Terms.tsx";
+import Faq from "@/pages/Faq.tsx";
+import Contact from "@/pages/Contact.tsx";
+import Wishlist from "@/pages/Wishlist.tsx";
+import Blank from "@/pages/Blank.tsx";
+import NotFound from "@/pages/NotFound.tsx";
 
-// Pages
-import Home from './pages/Home';
-import Products from './pages/Products';
-import ProductDetail from './pages/ProductDetail';
-import Cart from './pages/Cart';
-import Checkout from './pages/Checkout';
-import OrderConfirmation from './pages/OrderConfirmation';
-import NotFound from './pages/NotFound';
+const queryClient = new QueryClient();
 
-// Auth pages
-import Login from './pages/Auth/Login';
-import SignUp from './pages/Auth/SignUp';
-import ForgotPassword from './pages/Auth/ForgotPassword';
-import ResetPassword from './pages/Auth/ResetPassword';
-import VerifyEmail from './pages/Auth/VerifyEmail';
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/collection" element={<Collection />} />
+          <Route path="/product" element={<Product />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/thank-you" element={<ThankYou />} />
+          <Route path="/account" element={<Account />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:slug" element={<BlogPost />} />
+          <Route path="/orders" element={<Orders />} />
+          <Route path="/orders/:id" element={<OrderDetail />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/faq" element={<Faq />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/wishlist" element={<Wishlist />} />
+          <Route path="/blank" element={<Blank />} />
+          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
+    </TooltipProvider>
+  </QueryClientProvider>
+);
 
-// Account pages
-import Profile from './pages/Account/Profile';
-import OrderHistory from './pages/Account/OrderHistory';
-import OrderDetail from './pages/Account/OrderDetail';
-
-// CMS pages
-import AboutUs from './pages/CMS/AboutUs';
-import FAQ from './pages/CMS/FAQ';
-import PrivacyPolicy from './pages/CMS/PrivacyPolicy';
-import TermsConditions from './pages/CMS/TermsConditions';
-import Contact from './pages/CMS/Contact';
-
-import ProtectedRoute from './components/common/ProtectedRoute';
-
-export default function App() {
-  return (
-    <AuthProvider>
-      <CartProvider>
-        <BrowserRouter>
-          <Routes>
-            {/* Main storefront */}
-            <Route element={<MainLayout />}>
-              <Route path="/" element={<Home />} />
-              <Route path="/products" element={<Products />} />
-              <Route path="/products/:slug" element={<ProductDetail />} />
-              <Route path="/cart" element={<Cart />} />
-              <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
-              <Route path="/order-confirmation/:orderId" element={<ProtectedRoute><OrderConfirmation /></ProtectedRoute>} />
-
-              {/* Account */}
-              <Route path="/account/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-              <Route path="/account/orders" element={<ProtectedRoute><OrderHistory /></ProtectedRoute>} />
-              <Route path="/account/orders/:id" element={<ProtectedRoute><OrderDetail /></ProtectedRoute>} />
-
-              {/* CMS */}
-              <Route path="/about-us" element={<AboutUs />} />
-              <Route path="/faq" element={<FAQ />} />
-              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-              <Route path="/terms-conditions" element={<TermsConditions />} />
-              <Route path="/contact" element={<Contact />} />
-            </Route>
-
-            {/* Auth (no header/footer) */}
-            <Route element={<AuthLayout />}>
-              <Route path="/auth/login" element={<Login />} />
-              <Route path="/auth/signup" element={<SignUp />} />
-              <Route path="/auth/forgot-password" element={<ForgotPassword />} />
-              <Route path="/auth/reset-password/:token" element={<ResetPassword />} />
-              <Route path="/auth/verify-email/:token" element={<VerifyEmail />} />
-            </Route>
-
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </CartProvider>
-    </AuthProvider>
-  );
-}
+export default App;
