@@ -13,9 +13,7 @@ interface Props {
 const PageHeader = ({ title, crumbs }: Props) => (
   <section className="bg-sand py-10">
     <div className="max-w-7xl mx-auto px-4">
-      <h1 className="font-display text-3xl md:text-4xl font-semibold">
-        {title}
-      </h1>
+      <h1 className="font-display text-3xl md:text-4xl font-semibold">{title}</h1>
       <nav className="text-sm text-mute mt-2">
         {crumbs.map((c, i) => (
           <span key={i}>

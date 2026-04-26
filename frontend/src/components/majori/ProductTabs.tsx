@@ -31,9 +31,7 @@ const ProductTabs = ({ description, details, reviews }: Props) => {
             key={t.id}
             onClick={() => setTab(t.id)}
             className={`py-3 border-b-2 transition ${
-              tab === t.id
-                ? "border-ink text-ink"
-                : "border-transparent text-mute hover:text-ink"
+              tab === t.id ? "border-ink text-ink" : "border-transparent text-mute hover:text-ink"
             }`}
           >
             {t.label}
