@@ -24,8 +24,8 @@ export default function Login() {
     try {
       const res = await authService.login(data);
       if (res.success) {
-        login(res.data.token, res.data.user);
-        toast.success(`Welcome back, ${res.data.user.first_name}!`);
+        login(res.token, res.user);
+        toast.success(`Welcome back, ${res.user.first_name}!`);
         navigate('/');
       }
     } catch (err: unknown) {

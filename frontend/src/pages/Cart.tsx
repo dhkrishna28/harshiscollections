@@ -1,38 +1,24 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
-import Header from "@/components/majori/Header";
-import Footer from "@/components/majori/Footer";
+import { useCart } from "@/context/CartContext";
+import toast from "react-hot-toast";
+import PageLayout from "@/components/majori/PageLayout";
 import Newsletter from "@/components/majori/Newsletter";
-import CartDrawer from "@/components/majori/CartDrawer";
-import MenuDrawer from "@/components/majori/MenuDrawer";
 import PageHeader from "@/components/majori/PageHeader";
-import CartLineItem from "@/components/majori/CartLineItem";
 import OrderSummary from "@/components/majori/OrderSummary";
-import { sampleCart, type CartItem } from "@/lib/cart";
+import { formatPrice } from "@/lib/cart";
 
 const Cart = () => {
-  const [cartOpen, setCartOpen] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [items, setItems] = useState<CartItem[]>(sampleCart);
+  const { cart, updateItem, removeItem } = useCart();
+  const items = cart?.items ?? [];
 
-  const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);
+  const subtotal = items.reduce((s, i) => s + Number(i.product.price) * i.quantity, 0);
 
-  const setQty = (id: CartItem["id"], qty: number) =>
-    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, qty } : i)));
-  const remove = (id: CartItem["id"]) =>
-    setItems((prev) => prev.filter((i) => i.id !== id));
+  const API_ORIGIN =
+    (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace("/api", "") || "";
 
   return (
-    <div className="bg-cream text-ink antialiased min-h-screen">
-      <Header
-        onOpenCart={() => setCartOpen(true)}
-        onOpenMenu={() => setMenuOpen(true)}
-      />
-
-      <PageHeader
-        title="Cart"
-        crumbs={[{ label: "Home", to: "/" }, { label: "Cart" }]}
-      />
+    <PageLayout>
+      <PageHeader title="Cart" crumbs={[{ label: "Home", to: "/" }, { label: "Cart" }]} />
 
       <section className="py-10 md:py-14">
         <div className="max-w-7xl mx-auto px-4 grid md:grid-cols-[1fr_360px] gap-10">
@@ -49,12 +35,66 @@ const Cart = () => {
                 </thead>
                 <tbody>
                   {items.map((it) => (
-                    <CartLineItem
-                      key={it.id}
-                      item={it}
-                      onQtyChange={setQty}
-                      onRemove={remove}
-                    />
+                    <tr key={it.id} className="border-b border-ink/10">
+                      <td className="py-5 pr-4">
+                        <div className="flex gap-4 items-center">
+                          <img
+                            src={it.product.images?.[0]?.image_path ? `${API_ORIGIN}${it.product.images[0].image_path}` : "/placeholder.png"}
+                            alt={it.product.name}
+                            className="w-20 h-24 object-cover rounded"
+                          />
+                          <div>
+                            <Link to={`/product/${it.product.slug}`} className="font-medium hover:text-brand">
+                              {it.product.name}
+                            </Link>
+                            <p className="text-sm text-mute">{it.selected_size || "Default"}</p>
+                            <button
+                              onClick={async () => {
+                                try {
+                                  await removeItem(it.id);
+                                  toast.success("Item removed");
+                                } catch {
+                                  toast.error("Could not remove item");
+                                }
+                              }}
+                              className="text-xs text-mute hover:text-accent-red mt-1 underline"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-5 text-center">{formatPrice(Number(it.product.price))}</td>
+                      <td className="py-5 text-center">
+                        <div className="inline-flex border border-ink/20 rounded">
+                          <button
+                            onClick={() => updateItem(it.id, Math.max(1, it.quantity - 1))}
+                            className="w-8 h-9 hover:bg-cream"
+                            aria-label="Decrease"
+                          >
+                            −
+                          </button>
+                          <input
+                            value={it.quantity}
+                            onChange={(e) => {
+                              const n = parseInt(e.target.value || "1", 10);
+                              updateItem(it.id, Number.isNaN(n) ? 1 : Math.max(1, n));
+                            }}
+                            className="w-10 h-9 text-center outline-none bg-transparent"
+                          />
+                          <button
+                            onClick={() => updateItem(it.id, it.quantity + 1)}
+                            className="w-8 h-9 hover:bg-cream"
+                            aria-label="Increase"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </td>
+                      <td className="py-5 text-right font-semibold">
+                        {formatPrice(Number(it.product.price) * it.quantity)}
+                      </td>
+                    </tr>
                   ))}
                 </tbody>
               </table>
@@ -84,166 +124,14 @@ const Cart = () => {
                 Checkout
               </Link>
             }
-            footer={
-              <p className="text-xs text-mute text-center mt-3">
-                Secure SSL encrypted payment
-              </p>
-            }
+            footer={<p className="text-xs text-mute text-center mt-3">Secure SSL encrypted payment</p>}
           />
         </div>
       </section>
 
       <Newsletter />
-      <Footer />
-
-      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
-      <MenuDrawer open={menuOpen} onClose={() => setMenuOpen(false)} />
-    </div>
+    </PageLayout>
   );
 };
 
 export default Cart;
-import { Helmet } from "react-helmet-async";
-import { Link } from "react-router-dom";
-import { useCart } from "../context/CartContext";
-import toast from "react-hot-toast";
-
-export default function Cart() {
-  const { cart, isLoading, removeItem, updateItem } = useCart();
-  const apiBase =
-    (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(
-      "/api",
-      "",
-    ) || "";
-
-  if (isLoading)
-    return (
-      <div className="flex justify-center py-32">
-        <div className="w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-
-  const items = cart?.items ?? [];
-  const total = items.reduce((sum, item) => {
-    return sum + item.product.price * item.quantity;
-  }, 0);
-
-  return (
-    <>
-      <Helmet>
-        <title>Shopping Cart – Harshis Collections</title>
-      </Helmet>
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <h1 className="text-2xl font-serif font-bold text-gray-900 mb-8">
-          Shopping Cart
-        </h1>
-
-        {items.length === 0 ? (
-          <div className="text-center py-20">
-            <p className="text-gray-500 text-lg mb-6">Your cart is empty.</p>
-            <Link to="/products" className="btn-primary">
-              Browse Products
-            </Link>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-6">
-            {items.map((item) => {
-              const price = item.product.price;
-              const imageUrl = item.product.images?.[0]?.image_path
-                ? `${apiBase}${item.product.images[0].image_path}`
-                : "/placeholder.png";
-              return (
-                <div
-                  key={item.id}
-                  className="flex items-center gap-6 bg-white border rounded-xl p-4"
-                >
-                  <img
-                    src={imageUrl}
-                    alt={item.product.name}
-                    className="w-28 h-28 object-cover rounded-lg"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <Link
-                      to={`/products/${item.product.slug}`}
-                      className="font-medium text-gray-900 hover:text-primary-600 truncate block"
-                    >
-                      {item.product.name}
-                    </Link>
-                    {item.selected_size && (
-                      <p className="text-xs text-gray-500 mt-1">
-                        Size: {item.selected_size}
-                      </p>
-                    )}
-                    <p className="text-primary-600 font-semibold mt-1">
-                      ₹{price}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <input
-                      type="number"
-                      min={1}
-                      value={item.quantity}
-                      onChange={async (e) => {
-                        const q = parseInt(e.target.value);
-                        if (q >= 1) {
-                          try {
-                            await updateItem(item.id, q);
-                          } catch {
-                            toast.error("Could not update quantity.");
-                          }
-                        }
-                      }}
-                      className="input w-20 text-center"
-                    />
-                    <p className="w-28 text-right font-semibold text-gray-900">
-                      ₹{(price * item.quantity).toFixed(2)}
-                    </p>
-                    <button
-                      onClick={async () => {
-                        try {
-                          await removeItem(item.id);
-                          toast.success("Item removed.");
-                        } catch {
-                          toast.error("Could not remove item.");
-                        }
-                      }}
-                      className="text-red-500 hover:text-red-700 p-1"
-                    >
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M6 18L18 6M6 6l12 12"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-
-            {/* Summary */}
-            <div className="bg-gray-50 border rounded-xl p-6 mt-4">
-              <div className="flex justify-between text-lg font-bold text-gray-900 mb-4">
-                <span>Total</span>
-                <span>₹{total.toFixed(2)}</span>
-              </div>
-              <Link
-                to="/checkout"
-                className="btn-primary w-full text-center block py-3"
-              >
-                Proceed to Checkout
-              </Link>
-            </div>
-          </div>
-        )}
-      </div>
-    </>
-  );
-}

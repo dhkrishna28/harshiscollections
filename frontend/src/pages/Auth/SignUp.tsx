@@ -29,7 +29,7 @@ export default function SignUp() {
     try {
       const res = await authService.register(data);
       if (res.success) {
-        toast.success('Account created! Please check your email to verify.');
+        toast.success(res.message || 'Account created! Please check your email to verify.');
         navigate('/auth/login');
       }
     } catch (err: unknown) {

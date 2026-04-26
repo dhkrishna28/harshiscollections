@@ -28,14 +28,10 @@ const FooterAccordion = ({ section }: { section: Section }) => {
       >
         {section.title} <span className="text-white/60 md:hidden">▾</span>
       </button>
-      <ul
-        className={`${open ? "block" : "hidden"} md:block pl-0 mt-3 space-y-2 text-sm text-white/85`}
-      >
+      <ul className={`${open ? "block" : "hidden"} md:block pl-0 mt-3 space-y-2 text-sm text-white/85`}>
         {section.links?.map((l) => (
           <li key={l}>
-            <a href="#" className="hover:text-brand">
-              {l}
-            </a>
+            <a href="#" className="hover:text-brand">{l}</a>
           </li>
         ))}
       </ul>
@@ -54,39 +50,17 @@ const MoreSection = () => {
       >
         More <span className="text-white/60 md:hidden">▾</span>
       </button>
-      <div
-        className={`${open ? "block" : "hidden"} md:block mt-3 text-sm text-white/85`}
-      >
-        <p className="mb-3">
-          Sign up for early access to new collections and member-only offers.
-        </p>
-        <form
-          className="flex items-center gap-2"
-          onSubmit={(e) => e.preventDefault()}
-        >
-          <input
-            type="email"
-            placeholder="Email address"
-            className="flex-1 px-3 py-2 text-ink rounded-md"
-          />
-          <button className="bg-white text-ink px-3 py-2 rounded-md text-sm">
-            Join
-          </button>
+      <div className={`${open ? "block" : "hidden"} md:block mt-3 text-sm text-white/85`}>
+        <p className="mb-3">Sign up for early access to new collections and member-only offers.</p>
+        <form className="flex items-center gap-2" onSubmit={(e) => e.preventDefault()}>
+          <input type="email" placeholder="Email address" className="flex-1 px-3 py-2 text-ink rounded-md" />
+          <button className="bg-white text-ink px-3 py-2 rounded-md text-sm">Join</button>
         </form>
         <div className="mt-4">
           <p className="text-xs text-white/70 mb-2">We accept</p>
           <div className="flex items-center gap-3">
             {[0, 1, 2].map((i) => (
-              <svg
-                key={i}
-                width="36"
-                height="24"
-                viewBox="0 0 36 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1"
-                className="text-white/80"
-              >
+              <svg key={i} width="36" height="24" viewBox="0 0 36 24" fill="none" stroke="currentColor" strokeWidth="1" className="text-white/80">
                 <rect x="1" y="4" width="34" height="16" rx="2" />
               </svg>
             ))}
@@ -106,17 +80,11 @@ const Footer = () => (
             Harshis Collections<span className="text-brand">.</span>
           </p>
           <p className="text-sm text-white/80 max-w-sm">
-            Curated modern fashion for the everyday icon. Thoughtful pieces,
-            responsibly sourced.
+            Curated modern fashion for the everyday icon. Thoughtful pieces, responsibly sourced.
           </p>
           <div className="flex gap-3 mt-5">
             {["f", "i", "t"].map((c) => (
-              <a
-                key={c}
-                href="#"
-                aria-label={c}
-                className="w-9 h-9 border border-white/10 rounded-full grid place-items-center hover:bg-brand hover:border-brand"
-              >
+              <a key={c} href="#" aria-label={c} className="w-9 h-9 border border-white/10 rounded-full grid place-items-center hover:bg-brand hover:border-brand">
                 {c}
               </a>
             ))}
@@ -132,15 +100,9 @@ const Footer = () => (
       <div className="mt-8 border-t border-white/10 pt-6 flex flex-col md:flex-row md:items-center md:justify-between gap-3 text-xs text-white/70">
         <div>© 2026 Harshis Collections — All rights reserved.</div>
         <div className="flex items-center gap-4">
-          <a href="#" className="hover:text-white">
-            Privacy
-          </a>
-          <a href="#" className="hover:text-white">
-            Terms
-          </a>
-          <a href="#" className="hover:text-white">
-            Accessibility
-          </a>
+          <a href="#" className="hover:text-white">Privacy</a>
+          <a href="#" className="hover:text-white">Terms</a>
+          <a href="#" className="hover:text-white">Accessibility</a>
         </div>
       </div>
     </div>

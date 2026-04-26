@@ -17,10 +17,7 @@ export interface ListingProduct {
   brand?: string;
 }
 
-const badgeToneClass: Record<
-  NonNullable<ListingProduct["badge"]>["tone"],
-  string
-> = {
+const badgeToneClass: Record<NonNullable<ListingProduct["badge"]>["tone"], string> = {
   sale: "bg-accent-red text-white",
   new: "bg-brand text-white",
   hot: "bg-rose text-ink",
@@ -66,9 +63,7 @@ const ProductCard = ({ p, onAddToCart }: ProductCardProps) => {
         <p className="text-sm mt-1">
           <span className="font-semibold">{p.price}</span>
           {p.oldPrice && (
-            <span className="text-mute line-through text-sm ml-2">
-              {p.oldPrice}
-            </span>
+            <span className="text-mute line-through text-sm ml-2">{p.oldPrice}</span>
           )}
         </p>
       </div>

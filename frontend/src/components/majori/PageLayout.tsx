@@ -3,6 +3,7 @@ import Header from "@/components/majori/Header";
 import Footer from "@/components/majori/Footer";
 import CartDrawer from "@/components/majori/CartDrawer";
 import MenuDrawer from "@/components/majori/MenuDrawer";
+import { useCart } from "@/context/CartContext";
 
 interface Props {
   children: ReactNode;
@@ -11,12 +12,14 @@ interface Props {
 const PageLayout = ({ children }: Props) => {
   const [cartOpen, setCartOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const { itemCount } = useCart();
 
   return (
     <div className="bg-cream text-ink antialiased min-h-screen flex flex-col">
       <Header
         onOpenCart={() => setCartOpen(true)}
         onOpenMenu={() => setMenuOpen(true)}
+        cartCount={itemCount}
       />
       <main className="flex-1">{children}</main>
       <Footer />

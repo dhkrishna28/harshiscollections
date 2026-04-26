@@ -4,6 +4,7 @@ import {
   type ReactNode,
   useState,
   useEffect,
+  useRef,
 } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { cartService } from "../services/cartService";
@@ -30,6 +31,7 @@ const CartContext = createContext<CartContextValue | undefined>(undefined);
 export function CartProvider({ children }: { children: ReactNode }) {
   const { isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
+  const isSyncingGuestCart = useRef(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ["cart"],
@@ -67,6 +69,28 @@ export function CartProvider({ children }: { children: ReactNode }) {
     // keep localStorage in sync if guestCart changes
     if (!isAuthenticated && guestCart) saveGuestCart(guestCart);
   }, [guestCart, isAuthenticated]);
+
+  useEffect(() => {
+    if (!isAuthenticated || !guestCart?.items.length || isSyncingGuestCart.current) return;
+
+    isSyncingGuestCart.current = true;
+
+    void (async () => {
+      try {
+        for (const item of guestCart.items) {
+          await cartService.addItem(item.product_id, item.quantity, item.selected_size);
+        }
+        const empty: Cart = { id: 0, items: [] };
+        setGuestCart(empty);
+        localStorage.removeItem("hc_cart");
+        await invalidateCart();
+      } catch (error) {
+        console.error("Failed to merge guest cart into account cart", error);
+      } finally {
+        isSyncingGuestCart.current = false;
+      }
+    })();
+  }, [guestCart, isAuthenticated, queryClient]);
 
   const addItem = async (
     productOrId: number | Product,

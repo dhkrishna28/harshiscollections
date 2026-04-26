@@ -10,11 +10,7 @@ const CartLineItem = ({ item, onQtyChange, onRemove }: Props) => (
   <tr className="border-b border-ink/10">
     <td className="py-5 pr-4">
       <div className="flex gap-4 items-center">
-        <img
-          src={item.img}
-          alt={item.name}
-          className="w-20 h-24 object-cover rounded"
-        />
+        <img src={item.img} alt={item.name} className="w-20 h-24 object-cover rounded" />
         <div>
           <p className="font-medium">{item.name}</p>
           <p className="text-sm text-mute">{item.variant}</p>
@@ -54,9 +50,7 @@ const CartLineItem = ({ item, onQtyChange, onRemove }: Props) => (
         </button>
       </div>
     </td>
-    <td className="py-5 text-right font-semibold">
-      {formatPrice(item.price * item.qty)}
-    </td>
+    <td className="py-5 text-right font-semibold">{formatPrice(item.price * item.qty)}</td>
   </tr>
 );
 

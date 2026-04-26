@@ -34,4 +34,9 @@ export const sampleCart: CartItem[] = [
   },
 ];
 
-export const formatPrice = (n: number) => `$${n.toFixed(2)}`;
+export const formatPrice = (n: number) =>
+  new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 2,
+  }).format(n);
